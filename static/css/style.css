@@ -1,0 +1,15 @@
+.main-sidebar.sidebar-dark-navy {
+    background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%) !important;
+}
+.main-sidebar.sidebar-dark-teal {
+    background: linear-gradient(180deg, #16a085 0%, #1abc9c 100%) !important;
+}
+.main-sidebar.sidebar-dark-maroon {
+    background: linear-gradient(180deg, #8e44ad 0%, #9b59b6 100%) !important;
+}
+.main-sidebar.sidebar-dark-indigo {
+    background: linear-gradient(180deg, #3498db 0%, #2980b9 100%) !important;
+}
+.main-sidebar.sidebar-dark-olive {
+    background: linear-gradient(180deg, #27ae60 0%, #2ecc71 100%) !important;
+}
