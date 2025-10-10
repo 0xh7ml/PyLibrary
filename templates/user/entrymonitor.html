@@ -1,11 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IUBAT Smart Library Login</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- 1. General & Theming --- */
+        :root {
+            --primary-color: #3B82F6; /* Standard, accessible blue */
+            --primary-hover-color: #2563EB;
+            --dark-bg: #111827; /* Deep charcoal background */
+            --light-bg: #1F2937; /* Lighter charcoal for gradient */
+            --card-bg: #FFFFFF; /* Solid white card */
+            --heading-text: #1F2937; /* Dark gray for headings */
+            --body-text: #4B5563; /* Softer gray for paragraphs */
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg), var(--light-bg));
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- 2. Animations --- */
+        @keyframes fadeInSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* --- 3. Header --- */
+        .header .navbar-brand {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .header .admin-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            padding: 0 0.75rem;
+            font-size: 0.9rem;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+
+        .header .admin-links a:hover {
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+        
+        .header .admin-links a:not(:last-child) {
+            border-right: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* --- 4. Login Card (Solid White & Prominent) --- */
+        .login-card {
+            max-width: 420px;
+            width: 100%;
+            border: none;
+            border-radius: 1rem;
+            background-color: var(--card-bg);
+            animation: fadeInSlideUp 0.8s ease-out forwards;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .barcode-icon {
+            font-size: 3.5rem;
+            color: var(--heading-text);
+        }
+        
+        .login-card .card-body h1 {
+            color: var(--heading-text);
+        }
+
+        .login-card .card-body p {
+            color: var(--body-text);
+        }
+
+        /* --- 5. Form Elements --- */
+        .form-control {
+            background-color: #F9FAFB;
+            border: 1px solid #D1D5DB;
+            color: var(--heading-text);
+            transition: all 0.3s ease;
+        }
+
+        .form-control::placeholder {
+            color: #9CA3AF;
+        }
+        
+        .form-control:focus {
+            background-color: #fff;
+            color: var(--heading-text);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+        }
+
+        /* Animated button style */
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 0.75rem;
+            font-weight: 600;
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background-color 0.2s ease-in-out;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover-color);
+            border-color: var(--primary-hover-color);
+            transform: translateY(-4px);
+            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Logo styling */
+        .iubat-logo {
+            max-width: 180px;
+            height: auto;
+            display: block;
+            margin: 0 auto 1.25rem auto;
+        }
+
+    </style>
 </head>
 <body>
-  <p>Hijbullah</p>
+    {% load static %}
+
+
+    <header class="header p-3">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <a href="#" class="navbar-brand">
+                <i class="fa-solid fa-book-open-reader me-2"></i>IUBAT Smart Library
+            </a>
+            <div class="admin-links d-none d-sm-block">
+                <a href="#">Entry Monitor</a>
+                <a href="#">Service Monitor</a>
+                <a href="#">Admin</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content container d-flex align-items-center justify-content-center flex-grow-1">
+        <div class="card login-card p-4 p-md-5">
+            <div class="card-body text-center">
+
+                <!-- IUBAT logo (replace with static 'Iubat-logo.png' when available) -->
+                <img src="{% static 'gravatar/gravatar.png' %}" alt="IUBAT logo" class="iubat-logo">
+
+                <i class="fa-solid fa-barcode barcode-icon mb-4"></i>
+
+                <p class="mb-2">Welcome to</p>
+                <h1 class="h3 fw-bold mb-3">IUBAT Smart Library</h1>
+                <p class="mb-4">
+                    Please scan your ID card or enter the ID below to enter the library.
+                </p>
+
+                <form>
+                    <div class="mb-4">
+                        <label for="studentId" class="visually-hidden">Student ID</label>
+                        <input type="text" class="form-control form-control-lg" id="studentId" placeholder="Enter Student ID (e.g., 22303142)" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Enter Library</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </main>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
