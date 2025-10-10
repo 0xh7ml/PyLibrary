@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+{% block title %}E-Library Report{% endblock %}
+
+{% block content_header %}E-Library Report{% endblock content_header %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+<li class="breadcrumb-item active">E-Library Report</li>
+{% endblock breadcrumb %}
+
+{% block content %}
+
+<div class="col-12">
+    <!-- Filter Form -->
+    <div class="card">
+        <div class="card-body">
+            <form id="filterForm" method="POST">
+                {% csrf_token %}
+                <div class="row g-2 align-items-center">
+                    <div class="col-auto">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="far fa-calendar-alt text-primary"></i>
+                            </span>
+                            <input type="text" class="form-control" id="daterange" name="daterange" 
+                                    placeholder="Select Date" style="min-width: 180px;"
+                                    value="{{ filter_values.daterange|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-graduation-cap text-warning"></i>
+                            </span>
+                            <select class="form-select" id="yearFilter" name="year" style="min-width: 180px;">
+                                <option value="">-- Select Academic Year --</option>
+                                <!-- Years will be populated by JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-user-graduate text-success"></i>
+                            </span>
+                            <input type="text" class="form-control" id="studentFilter" name="student_id" 
+                                    placeholder="-- Select Student ID --" style="min-width: 180px;"
+                                    value="{{ filter_values.student_id|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="btn-group" role="group">
+                            <button type="submit" class="btn btn-primary px-4" id="applyFilters">
+                                <i class="fas fa-search me-1"></i>Search
+                            </button>
+                            <button type="button" class="btn btn-info px-4" id="resetFilters">
+                                <i class="fas fa-undo me-1"></i>Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Data Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="dataTable" class="table table-bordered text-nowrap">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th>S/N</th>
+                            <th>Student Id</th>
+                            <th>Name</th>
+                            <th>Dept</th>
+                            <th>Pc/Seat No</th>
+                            <th>Entry Time</th>
+                            <th>Exit Time</th>
+                            <th>Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center">
+                        {% for item in data %}
+                        <tr>
+                            <td>{{ data.start_index|add:forloop.counter0 }}</td>
+                            <td><span class="badge badge-primary">{{ item.student.id_no }}</span></td>
+                            <td>{{ item.student.name }}</td>
+                            <td>{{ item.student.department.name }}</td>
+                            <td>{{ item.seat }}</td>
+                            <td><small class="text-muted">{{ item.start_time|date:"SHORT_DATETIME_FORMAT"|upper }}</small></td>
+                            <td><small class="text-muted">{{ item.end_time|date:"SHORT_DATETIME_FORMAT"|upper }}</small></td>
+                            <td>
+                                {% if item.duration_display == 'Active' %}
+                                    <span class="badge badge-warning">{{ item.duration_display }}</span>
+                                {% else %}
+                                    <span class="text-success">{{ item.duration_display }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center"><i class="fas fa-database"></i> No data available</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>    
+        </div>
+        <!-- Pagination -->
+        {% include "utils/pagination.html" with data=data %}
+    </div>
+</div>
+{% endblock content %}
+
+{% block customJs %}
+<script>
+$(document).ready(function() {
+    // Get CSRF token
+    function getCsrfToken() {
+        return $('[name=csrfmiddlewaretoken]').val();
+    }
+    
+    // Populate year options
+    function populateYearOptions() {
+        var currentYear = new Date().getFullYear();
+        var startYear = currentYear - 5; // Show last 5 years
+        var endYear = currentYear + 1;    // Show next 1 year
+        var yearSelect = $('#yearFilter');
+        
+        // Add year options (newest first)
+        for (var year = endYear; year >= startYear; year--) {
+            var isSelected = '{{ filter_values.year }}' == year.toString() ? 'selected' : '';
+            yearSelect.append('<option value="' + year + '" ' + isSelected + '>' + year + '</option>');
+        }
+    }
+    
+    // Initialize daterangepicker
+    if ($('#daterange').length) {
+        $('#daterange').daterangepicker({
+            "minYear": 2020,
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            },
+            "alwaysShowCalendars": true,
+            "locale": {
+                "format": "MM/DD/YYYY",
+                "separator": " - ",
+                "applyLabel": "Apply",
+                "cancelLabel": "Cancel",
+                "fromLabel": "From",
+                "toLabel": "To",
+                "customRangeLabel": "Custom",
+                "weekLabel": "W",
+                "daysOfWeek": ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
+                "monthNames": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+                "firstDay": 1
+            }
+        });
+        
+        // Set existing value if present
+        var existingDateRange = '{{ filter_values.daterange|default:"" }}';
+        if (existingDateRange) {
+            $('#daterange').val(existingDateRange);
+        }
+    }
+    
+    // Populate year options
+    populateYearOptions();
+    
+    // Handle form submission with AJAX POST
+    $('#filterForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Show loading state
+        $('#applyFilters').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Loading...');
+        
+        // Get form data
+        var formData = {
+            'csrfmiddlewaretoken': getCsrfToken(),
+            'daterange': $('#daterange').val().trim(),
+            'year': $('#yearFilter').val(),
+            'student_id': $('#studentFilter').val().trim()
+        };
+        
+        // Send AJAX POST request
+        $.ajax({
+            url: window.location.pathname,
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                // Replace the entire page content with the response
+                $('body').html(response);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error applying filters:', error);
+                
+                // Reset button state
+                $('#applyFilters').prop('disabled', false).html('<i class="fas fa-search me-1"></i>Search');
+                
+                // Show error message
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to apply filters. Please try again.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            }
+        });
+    });
+    
+    // Handle reset button
+    $('#resetFilters').on('click', function() {
+        // Show loading state
+        $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Resetting...');
+        
+        // Clear all form fields
+        $('#daterange').val('');
+        $('#yearFilter').val('');
+        $('#studentFilter').val('');
+        
+        // Reset daterangepicker if exists
+        if ($('#daterange').data('daterangepicker')) {
+            $('#daterange').data('daterangepicker').setStartDate(moment());
+            $('#daterange').data('daterangepicker').setEndDate(moment());
+        }
+        
+        // Send AJAX POST request with empty filters
+        $.ajax({
+            url: window.location.pathname,
+            type: 'POST',
+            data: {
+                'csrfmiddlewaretoken': getCsrfToken(),
+                'daterange': '',
+                'year': '',
+                'student_id': ''
+            },
+            success: function(response) {
+                // Replace the entire page content with the response
+                $('body').html(response);
+                
+                // Show success message
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Filters Reset',
+                        text: 'All filters have been cleared.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error resetting filters:', error);
+                
+                // Reset button state
+                $('#resetFilters').prop('disabled', false).html('<i class="fas fa-undo me-1"></i>Reset');
+                
+                // Show error message
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to reset filters. Please try again.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            }
+        });
+    });
+    
+    // Show filter summary
+    function updateFilterSummary() {
+        var activeFilters = 0;
+        var summaryText = [];
+        
+        if ($('#daterange').val()) {
+            activeFilters++;
+            summaryText.push('Date Range');
+        }
+        if ($('#yearFilter').val()) {
+            activeFilters++;
+            summaryText.push('Year');
+        }
+        if ($('#studentFilter').val()) {
+            activeFilters++;
+            summaryText.push('Student ID');
+        }
+        
+        if (activeFilters > 0) {
+            console.log('Active filters: ' + summaryText.join(', '));
+        }
+    }
+    
+    // Update filter summary on page load
+    updateFilterSummary();
+});
+</script>
+{% endblock customJs %}

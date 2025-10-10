@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path
-from .views import demo_report
+from .views import library_report_view, elibrary_report_view
 urlpatterns = [
-    path('demo/', demo_report, name='demo_report'),
+    path('library-report/', library_report_view, name='library_report'),
+    path('elibrary-report/', elibrary_report_view, name='elibrary_report'),
 ]

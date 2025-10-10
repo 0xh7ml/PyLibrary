@@ -2,19 +2,27 @@
 <div class="card-footer clearfix">
     <ul class="pagination pagination-sm m-0 float-right">
         {% if data.has_previous %}
-        <li class="page-item"><a class="page-link" href="?page=1">&laquo;</a></li>
-        <li class="page-item"><a class="page-link" href="?page={{ data.previous_page_number }}">Previous</a>
+        <li class="page-item">
+            <a class="page-link pagination-link" href="#" data-page="1">&laquo;</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link pagination-link" href="#" data-page="{{ data.previous_page_number }}">Previous</a>
         </li>
         {% else %}
         <li class="page-item disabled"><a class="page-link" href="#">&laquo;</a></li>
         <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
         {% endif %}
 
-        <li class="page-item"><a class="page-link" href="#">Page {{ data.number }} of {{data.paginator.num_pages }}</a></li>
+        <li class="page-item">
+            <a class="page-link" href="#">Page {{ data.number }} of {{ data.paginator.num_pages }}</a>
+        </li>
 
         {% if data.has_next %}
-        <li class="page-item"><a class="page-link" href="?page={{ data.next_page_number }}">Next</a></li>
-        <li class="page-item"><a class="page-link" href="?page={{ data.paginator.num_pages }}">&raquo;</a>
+        <li class="page-item">
+            <a class="page-link pagination-link" href="#" data-page="{{ data.next_page_number }}">Next</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link pagination-link" href="#" data-page="{{ data.paginator.num_pages }}">&raquo;</a>
         </li>
         {% else %}
         <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
@@ -22,3 +30,52 @@
         {% endif %}
     </ul>
 </div>
+
+<script>
+$(document).ready(function() {
+    // Handle pagination links
+    $('.pagination-link').on('click', function(e) {
+        e.preventDefault();
+        
+        var page = $(this).data('page');
+        if (!page) return;
+        
+        // Get current filter values
+        var formData = {
+            'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val(),
+            'daterange': $('#daterange').val() || '',
+            'year': $('#yearFilter').val() || '',
+            'student_id': $('#studentFilter').val() || '',
+            'page': page
+        };
+        
+        // Show loading state
+        $(this).html('<i class="fas fa-spinner fa-spin"></i>');
+        
+        // Send AJAX POST request with pagination
+        $.ajax({
+            url: window.location.pathname,
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                // Replace the entire page content with the response
+                $('body').html(response);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading page:', error);
+                
+                // Show error message
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to load page. Please try again.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            }
+        });
+    });
+});
+</script>

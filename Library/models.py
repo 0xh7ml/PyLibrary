@@ -28,7 +28,7 @@ class ElibrarySeat(models.Model):
         db_table = "tb_elibraries_seats"
 
     def __str__(self):
-        return f"PC {self.pc_no}"
+        return f"{self.pc_no}"
     
 class Student(models.Model):
     name = models.CharField(max_length=100)
@@ -81,8 +81,7 @@ class ELibrarySession(models.Model):
     """Track e-library seat usage sessions"""
     SESSION_STATUS_CHOICES = [
         ('Active', 'Active'),
-        ('Completed', 'Completed'),
-        ('Cancelled', 'Cancelled'),
+        ('Exited', 'Exited'),
     ]
     
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
@@ -104,7 +103,7 @@ class ELibrarySession(models.Model):
     def end_session(self):
         """End the e-library session"""
         self.end_time = timezone.now()
-        self.status = 'Completed'
+        self.status = 'Exited'
         self.seat.status = 'Available'
         self.seat.save()
         self.save()
@@ -115,3 +114,21 @@ class ELibrarySession(models.Model):
         if self.end_time:
             return self.end_time - self.start_time
         return None
+    
+    @property 
+    def duration_display(self):
+        """Get formatted duration string for display"""
+        if self.end_time:
+            duration = self.end_time - self.start_time
+            return str(duration).split('.')[0]  # Remove microseconds
+        return 'Active'
+    
+    @property
+    def formatted_start_time(self):
+        """Get formatted start time for display"""
+        return self.start_time.strftime('%Y-%m-%d %H:%M:%S')
+    
+    @property 
+    def formatted_end_time(self):
+        """Get formatted end time for display"""
+        return self.end_time.strftime('%Y-%m-%d %H:%M:%S') if self.end_time else 'Not Exited'
