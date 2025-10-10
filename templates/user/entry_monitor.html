@@ -1,4 +1,4 @@
-{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,19 +12,19 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Inlined user CSS (previously static/css/user.css) -->
+    
     <style>
-    /* --- Theme: Clean, Modern Dashboard with High Contrast & Data Viz Accents --- */
+    
 
     :root {
-        /* Palette provided by user */
-        --sidebar-bg: #222B45; /* Sidebar/Primary Dark BG */
-        --main-bg: #F8F9FA;    /* Main Background */
-        --card-bg: #FFFFFF;    /* Card/Surface */
-        --text-dark: #343A40;  /* Primary text */
-        --text-muted: #6C757D; /* Muted text */
-        --accent: #8F66F4;     /* Accent / Data Viz */
-        --iubat-green: #005C2B;/* IUBAT Primary Action */
+       
+        --sidebar-bg: #222B45; 
+        --main-bg: #F8F9FA;    
+        --card-bg: #FFFFFF;    
+        --text-dark: #343A40;  
+        --text-muted: #6C757D; 
+        --accent: #8F66F4;     
+        --iubat-green: #005C2B;
         --iubat-green-hover: #004C22;
         --radius: 10px;
     }
@@ -43,7 +43,7 @@
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Navbar: pill-style, centered, with subtle backdrop */
+    
     .header {
         background: var(--sidebar-bg);
         color: #fff;
@@ -54,6 +54,11 @@
     }
 
     .header .navbar-brand { font-weight: 700; font-size: 1.125rem; color: #fff; }
+
+    .header .admin-links a { color: rgba(255,255,255,0.9); padding: 0 0.75rem; }
+    .header .admin-links a:hover { color: var(--accent); }
+    .header .admin-links .active-link { color: var(--accent); font-weight:700; }
+    .header .admin-links .active-link::after { content: ''; display: block; height: 3px; width: 36px; margin: 6px auto 0; background: linear-gradient(90deg,var(--accent), rgba(143,102,244,0.6)); border-radius: 2px; }
 
     .nav-pill {
         display: inline-flex;
@@ -108,9 +113,11 @@
                 <i class="fa-solid fa-book-open-reader me-2"></i>IUBAT Library
             </a>
             <div class="admin-links d-none d-sm-block">
-                <a href="#" class="active-link">Entry Monitor</a> 
-                <a href="#">Service Monitor</a>
-                <a href="#">Admin</a>
+                <nav class="nav-pill">
+                    <a href="#" class="active-link">Entry Monitor</a>
+                    <a href="#">Service Monitor</a>
+                    <a href="#">Admin</a>
+                </nav>
             </div>
         </div>
     </header>
@@ -129,7 +136,7 @@
                 </p>
 
                 <form id="entryForm" method="POST">
-                    {% csrf_token %}
+
 
                     <div class="mb-4">
                         <label for="studentId" class="visually-hidden">StudentID</label>
@@ -152,16 +159,14 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
     <script>
-        // --- Essential Fix for Scanner/Enter Key Usage ---
-        // Prevents scanner's final 'Enter' output from prematurely submitting the form.
+        
         document.getElementById('entryForm').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
             }
         });
 
-        // Ensure the input field is focused immediately on page load,
-        // which is crucial for quick use with a scanner.
+        
         document.addEventListener('DOMContentLoaded', (event) => {
             document.getElementById('studentId').focus();
         });
