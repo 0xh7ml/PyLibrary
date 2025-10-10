@@ -34,8 +34,8 @@
     .nav-pill a:hover { color: #fff; background: rgba(255,255,255,0.06); transform: translateY(-2px); }
     .nav-pill a.active-link { color: var(--accent); background: rgba(143,102,244,0.12); box-shadow: 0 4px 14px rgba(143,102,244,0.06); }
     .header .admin-links .active-link::after { content:''; display:block; height:3px; width:36px; margin:6px auto 0; background: linear-gradient(90deg,var(--accent), rgba(143,102,244,0.6)); border-radius:2px; }
-    .login-card { max-width:520px; width:100%; border-radius:var(--radius); background:var(--card-bg); animation: fadeInSlideUp 0.8s ease-out forwards; box-shadow:0 12px 30px rgba(34,43,69,0.08); border:1px solid rgba(34,43,69,0.04);} .login-card .card-body { padding:2.25rem; }
-    .iubat-logo-wrapper { display:flex; align-items:center; justify-content:center; margin:0 auto 1.5rem auto; width:72px; height:72px; border-radius:12px; background: linear-gradient(180deg, rgba(143,102,244,0.08), rgba(143,102,244,0.03)); box-shadow: 0 4px 12px rgba(143,102,244,0.06);} .iubat-logo { max-width:60px; height:auto; }
+    .login-card { max-width:780px; width:100%; border-radius:calc(var(--radius) + 6px); background:var(--card-bg); animation: fadeInSlideUp 0.8s ease-out forwards; box-shadow:0 18px 46px rgba(34,43,69,0.10); border:1px solid rgba(34,43,69,0.06);} .login-card .card-body { padding:3rem; }
+    .iubat-logo-wrapper { display:flex; align-items:center; justify-content:center; margin:0 auto 1.75rem auto; width:96px; height:96px; border-radius:14px; background: linear-gradient(180deg, rgba(143,102,244,0.08), rgba(143,102,244,0.03)); box-shadow: 0 8px 20px rgba(143,102,244,0.08);} .iubat-logo { max-width:84px; height:auto; }
 
   
     .brand-logo { width: 36px; height: 36px; object-fit: contain; border-radius: 6px; }
@@ -64,11 +64,11 @@
         <div class="card login-card p-4 p-md-5">
             <div class="card-body text-center">
 
-                <div class="iubat-logo-wrapper service-icon"><i class="fa-solid fa-barcode"></i></div>
+                <div class="iubat-logo-wrapper service-icon"><i class="fa-solid fa-barcode fa-2x"></i></div>
 
-                <h1 class="h3 fw-bold mb-2">E-Library & Exit Station</h1>
-                <p class="mb-4">
-                    Scan your ID to Exit the Library or Access Services.
+                <h1 class="h2 fw-bold mb-3">E-Library & Exit Station</h1>
+                <p class="lead mb-4 text-muted">
+                    Scan your ID to exit or access library services. Use this station for quick check-outs and admin services.
                 </p>
 
                 <form id="serviceForm" method="POST">
