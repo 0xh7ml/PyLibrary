@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Library PC Layout</title>
+    
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Font Awesome (for the computer icon) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" xintegrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Status Colors */
+            --status-available: #37C57E; /* Green */
+            --status-occupied: #F44558;  /* Red */
+            --status-reserved: #2081C4;  /* Distinct Blue */
+            
+            /* Layout Colors */
+            --desk-blue: #2081C4;
+            --bg-color: #F8F9FA;
+            --cell-spacing: 0.25rem;
+            --group-gap: 3rem; /* The larger gap between column pairs (zones) */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+        }
+
+        /* --- 1. PC Desk Area --- */
+        .pc-desk-area {
+            position: relative;
+            background: linear-gradient(to top, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), linear-gradient(to bottom, #72aee8, #378edc);
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-bottom: 3px solid var(--desk-blue);
+        }
+
+        .desk-unit {
+            background-color: white;
+            border: 2px solid var(--desk-blue);
+            border-radius: 4px;
+            width: 80px;
+            height: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .desk-unit div {
+            border: 1px solid var(--desk-blue);
+        }
+
+        /* --- 2. PC Seats/Cells --- */
+        .pc-cell {
+            cursor: pointer;
+            height: 50px;
+            width: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            border-radius: 0.35rem;
+            margin-bottom: var(--cell-spacing);
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Top margin for vertical alignment adjustment */
+        .pc-column-pair .col-pc > :first-child {
+            margin-top: var(--cell-spacing); 
+        }
+
+        /* Status Styling */
+        .status-available { background-color: var(--status-available); }
+        .status-occupied { background-color: var(--status-occupied); }
+        .status-reserved { background-color: var(--status-reserved); }
+        
+        /* Interactive States */
+        .pc-cell:hover:not(.status-occupied) {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .status-occupied {
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+
+        /* --- 3. Grid Structure & Zoned Groups --- */
+        .pc-layout-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center; 
+            max-width: 900px; /* Limit overall width for grouping effect */
+            margin: 0 auto;
+        }
+
+        .pc-column-pair {
+            display: flex;
+            justify-content: space-between;
+            min-width: 150px;
+            flex-grow: 0; /* Important: prevents stretching */
+        }
+        
+        .pc-column-pair .col-pc {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-left: 0.5rem; /* Small internal gap between the two columns */
+            margin-right: 0.5rem;
+        }
+
+        /* Apply the large GAP only to the RIGHT side of the first three column pairs */
+        .pc-column-pair:not(:last-child) {
+            margin-right: var(--group-gap); 
+        }
+
+        /* Center the entire layout within the container */
+        .layout-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        /* --- Responsive Breakpoints --- */
+        @media (max-width: 767px) {
+            /* Mobile view: Stack pairs vertically */
+            .pc-layout-row {
+                flex-direction: column;
+                align-items: center;
+            }
+            .pc-column-pair {
+                margin: 0;
+                margin-bottom: 2rem;
+                width: 70%;
+            }
+            /* Remove the large gap on mobile when they are stacked */
+            .pc-column-pair:not(:last-child) {
+                margin-right: 0; 
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container p-4 p-md-5">
+    <h1 class="text-2xl font-semibold mb-4 text-gray-700 text-center">
+        <i class="fa-solid fa-desktop text-blue-500 me-2"></i> 
+        E-Library PC Layout 
+    </h1>
+
+    <!-- Desk Area -->
+    <div class="pc-desk-area container-fluid d-flex justify-content-around">
+        <div class="desk-unit"><div></div><div></div><div></div><div></div></div>
+        <div class="desk-unit"><div></div><div></div><div></div><div></div></div>
+        <div class="desk-unit"><div></div><div></div><div></div><div></div></div>
+        <div class="desk-unit"><div></div><div></div><div></div><div></div></div>
+    </div>
+
+    <!-- Main layout wrapper for horizontal centering -->
+    <div class="layout-container">
+        <!-- PC Layout Grid (4 Groups of 2 Columns) -->
+        <div id="pc-layout-grid" class="pc-layout-row">
+            
+            <!-- PC Zone 1: Columns 1 & 2 (Close together) -->
+            <div class="pc-column-pair">
+                <div id="col-1" class="col-pc"></div>
+                <div id="col-2" class="col-pc"></div>
+            </div>
+
+            <!-- PC Zone 2: Columns 3 & 4 (Close together, large gap follows) -->
+            <div class="pc-column-pair">
+                <div id="col-3" class="col-pc"></div>
+                <div id="col-4" class="col-pc"></div>
+            </div>
+            
+            <!-- PC Zone 3: Columns 5 & 6 (Close together, large gap follows) -->
+            <div class="pc-column-pair">
+                <div id="col-5" class="col-pc"></div>
+                <div id="col-6" class="col-pc"></div>
+            </div>
+
+            <!-- PC Zone 4: Columns 7 & 8 (Close together, no gap follows) -->
+            <div class="pc-column-pair">
+                <div id="col-7" class="col-pc"></div>
+                <div id="col-8" class="col-pc"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="mt-5 text-center p-3 border rounded-lg bg-white shadow-sm">
+        <p class="mb-2 font-semibold text-gray-700">Click on an available green PC to reserve it</p>
+        <span class="badge me-3 p-2" style="background-color: var(--status-available);">Available</span>
+        <span class="badge me-3 p-2" style="background-color: var(--status-occupied);">Occupied</span>
+        <span class="badge p-2" style="background-color: var(--status-reserved);">Reserved</span>
+    </div>
+
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+<script>
+    const totalPCs = 48;
+    const pcsPerColumn = 6;
+    const numColumns = 8;
+
+    // Initial PC Status Data (Matching the colors in the provided image)
+    const initialStatus = {
+        // Occupied/Red PCs
+        31: 'occupied', 17: 'occupied', 43: 'occupied', 44: 'occupied', 45: 'occupied', 27: 'occupied',
+        // Reserved/Blue PCs
+        29: 'reserved', 32: 'reserved', 28: 'reserved',
+    };
+    const defaultStatus = 'available';
+
+    // Function to map PC number to its correct DOM column element
+    function mapPcToDomColumnId(pcNum) {
+        // PC number 1-6 goes to col-1, 7-12 to col-2, 13-18 to col-3, etc.
+        let columnIndex = Math.ceil(pcNum / pcsPerColumn);
+        return `col-${columnIndex}`;
+    }
+
+    // Function to create the PC cell element
+    function createPcCell(pcNum, status) {
+        const cell = document.createElement('div');
+        cell.className = `pc-cell status-${status}`;
+        cell.setAttribute('data-pc-num', pcNum);
+        cell.setAttribute('data-status', status);
+        cell.textContent = pcNum;
+        cell.addEventListener('click', handlePcClick);
+        return cell;
+    }
+
+    // Function to render the entire layout based on the exact image order
+    function renderLayout() {
+        const columns = {};
+        for (let i = 1; i <= numColumns; i++) {
+            columns[i] = [];
+        }
+
+        // 1. Group PCs by their target column (1 through 8)
+        for (let pcNum = 1; pcNum <= totalPCs; pcNum++) {
+            const status = initialStatus[pcNum] || defaultStatus;
+            const colId = mapPcToDomColumnId(pcNum);
+            
+            const colIndex = parseInt(colId.replace('col-', ''));
+            columns[colIndex].push({ pcNum, status });
+        }
+        
+        // 2. Render elements into the DOM structure
+        for (let col = 1; col <= numColumns; col++) {
+            const columnEl = document.getElementById(`col-${col}`);
+            if (columnEl) {
+                const isOddColumn = col % 2 !== 0;
+
+                // Sort the PCs within the column by ascending number
+                columns[col].sort((a, b) => a.pcNum - b.pcNum);
+                
+                // If it's an odd column (1, 3, 5, 7), we render the array in reverse 
+                // to put PC number 1 at the bottom and 6 at the top, matching the image.
+                if (isOddColumn) {
+                    columns[col].reverse(); 
+                }
+
+                columns[col].forEach(pc => {
+                    const cell = createPcCell(pc.pcNum, pc.status);
+                    columnEl.appendChild(cell);
+                });
+            }
+        }
+    }
+
+    // Handles click event for selection/reservation
+    function handlePcClick(event) {
+        const cell = event.target;
+        let currentStatus = cell.getAttribute('data-status');
+        const pcNum = cell.getAttribute('data-pc-num');
+
+        if (currentStatus === 'occupied') {
+            return;
+        }
+
+        if (currentStatus === 'reserved') {
+            // Deselect: Revert to available
+            cell.classList.replace('status-reserved', 'status-available');
+            cell.setAttribute('data-status', 'available');
+        } else if (currentStatus === 'available') {
+            // Select: Change to reserved (Enforcing single selection)
+            
+            document.querySelectorAll('.pc-cell[data-status="reserved"]').forEach(reservedCell => {
+                reservedCell.classList.replace('status-reserved', 'status-available');
+                reservedCell.setAttribute('data-status', 'available');
+            });
+
+            // Select the clicked PC
+            cell.classList.replace('status-available', 'status-reserved');
+            cell.setAttribute('data-status', 'reserved');
+            
+            // NOTE: In a real app, this is where you'd confirm the reservation.
+        }
+    }
+
+    // Initialize the layout on page load
+    document.addEventListener('DOMContentLoaded', renderLayout);
+
+</script>
+
+</body>
+</html>
