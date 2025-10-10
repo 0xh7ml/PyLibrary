@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Tickets - Add New Ticket{% endblock %}
+
+{% block content_header %}
+    Add New Ticket
+{% endblock content_header %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+<li class="breadcrumb-item active">Add Ticket</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" action="{% url 'ticket_add' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="issue_type" class="form-label">Issue Type</label>
+                        <select class="form-select" id="issue_type" name="issue_type" required>
+                            <option value="">Select Issue Type</option>
+                            <option value="pc_issue">PC Issue</option>
+                            <option value="facility_issue">Facility Issue</option>
+                            <option value="other_issue">Other Issue</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
