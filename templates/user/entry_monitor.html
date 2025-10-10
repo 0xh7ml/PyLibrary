@@ -1,5 +1,4 @@
 {% load static %}
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,18 +43,39 @@
         to { opacity: 1; transform: translateY(0); }
     }
 
+    /* Navbar: pill-style, centered, with subtle backdrop */
     .header {
         background: var(--sidebar-bg);
         color: #fff;
         box-shadow: 0 6px 20px rgba(34, 43, 69, 0.12);
+        position: sticky;
+        top: 0;
+        z-index: 40;
     }
-    .header .navbar-brand { font-weight: 700; font-size: 1.125rem; color: #fff; }
-    .header .admin-links a { color: rgba(255,255,255,0.9); padding: 0 0.75rem; }
-    .header .admin-links a:hover { color: var(--accent); }
-    .header .admin-links a:not(:last-child) { border-right: 1px solid rgba(255,255,255,0.06); }
-    .header .admin-links .active-link { color: var(--accent); font-weight: 700; }
 
-    .header .admin-links .active-link::after { content: ''; display:block; height:3px; width:36px; margin:6px auto 0; background: linear-gradient(90deg,var(--accent), rgba(143,102,244,0.6)); border-radius:2px; }
+    .header .navbar-brand { font-weight: 700; font-size: 1.125rem; color: #fff; }
+
+    .nav-pill {
+        display: inline-flex;
+        gap: 0.5rem;
+        background: rgba(255,255,255,0.04);
+        padding: 0.25rem;
+        border-radius: 999px;
+        align-items: center;
+    }
+
+    .nav-pill a {
+        color: rgba(255,255,255,0.85);
+        padding: 0.45rem 0.9rem;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+    }
+
+    .nav-pill a:hover { color: #fff; background: rgba(255,255,255,0.06); transform: translateY(-2px); }
+
+    .nav-pill a.active-link { color: var(--accent); background: rgba(143,102,244,0.12); box-shadow: 0 4px 14px rgba(143,102,244,0.06); }
 
     .login-card {
         max-width: 520px;
