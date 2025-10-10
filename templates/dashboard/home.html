@@ -2,6 +2,442 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<h1>Welcome to the Dashboard</h1>
-<p>This is the main dashboard page.</p>
-{% endblock %}
+<!-- Live Library Statistics -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar text-info"></i> Live Library Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Students in Library -->
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="info-box bg-info">
+                            <span class="info-box-icon">
+                                <i class="fas fa-university"></i>
+                            </span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-white">Students in Library</span>
+                                <span class="info-box-number text-white">{{ students_in_library }}</span>
+                                <span class="info-box-more text-white-50">Total students inside</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Using E-Library -->
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="info-box bg-purple">
+                            <span class="info-box-icon">
+                                <i class="fas fa-laptop"></i>
+                            </span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-white">Using E-Library</span>
+                                <span class="info-box-number text-white">{{ students_using_elibrary }}</span>
+                                <span class="info-box-more text-white-50">Students on PCs</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Library Only -->
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="info-box bg-warning">
+                            <span class="info-box-icon">
+                                <i class="fas fa-book-open"></i>
+                            </span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-white">Main Library Only</span>
+                                <span class="info-box-number text-white">{{ main_library_only }}</span>
+                                <span class="info-box-more text-white-50">Reading/Studying</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PC Status Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-desktop text-secondary"></i> PC Status Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Available PCs -->
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="info-box bg-success">
+                            <span class="info-box-icon">
+                                <i class="fas fa-check"></i>
+                            </span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-white">Available PCs</span>
+                                <span class="info-box-number text-white">{{ available_pcs }}</span>
+                                <span class="info-box-more text-white-50">Ready to use</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- In Use PCs -->
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="info-box bg-warning">
+                            <span class="info-box-icon">
+                                <i class="fas fa-circle"></i>
+                            </span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-white">In Use PCs</span>
+                                <span class="info-box-number text-white">{{ in_use_pcs }}</span>
+                                <span class="info-box-more text-white-50">Currently occupied</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Out of Service -->
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="info-box bg-danger">
+                            <span class="info-box-icon">
+                                <i class="fas fa-times"></i>
+                            </span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-white">Out of Service</span>
+                                <span class="info-box-number text-white">{{ out_of_service_pcs }}</span>
+                                <span class="info-box-more text-white-50">Need maintenance</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total PCs -->
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="info-box bg-secondary">
+                            <span class="info-box-icon">
+                                <i class="fas fa-desktop"></i>
+                            </span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-white">Total PCs</span>
+                                <span class="info-box-number text-white">{{ total_pcs }}</span>
+                                <span class="info-box-more text-white-50">All computers</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row">
+    <!-- Left Column - Ticket Status Pie Chart -->
+    <div class="col-lg-6 col-md-12 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie text-warning"></i> Ticket Status Distribution
+                </h5>
+            </div>
+            <div class="card-body d-flex flex-column">
+                <div class="chart-container flex-grow-1" style="height: 350px;">
+                    <canvas id="ticketChart"></canvas>
+                </div>
+                <!-- Ticket Summary Stats -->
+                <div class="row mt-3">
+                    <div class="col-6 text-center">
+                        <div class="border-right">
+                            <strong class="text-danger">{{ open_tickets }}</strong><br>
+                            <small class="text-muted">Open Tickets</small>
+                        </div>
+                    </div>
+                    <div class="col-6 text-center">
+                        <strong class="text-info">{{ total_tickets }}</strong><br>
+                        <small class="text-muted">Total Tickets</small>
+                    </div>
+                </div>
+                <!-- Fixed height alert area -->
+                <div style="min-height: 60px; margin-top: 15px;">
+                    {% if today_tickets > 0 %}
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>{{ today_tickets }}</strong> new ticket{{ today_tickets|pluralize }} created today
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column - PC Usage Analytics Bar Chart -->
+    <div class="col-lg-6 col-md-12 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar text-primary"></i> PC Usage Analytics (Last 7 Days)
+                </h5>
+            </div>
+            <div class="card-body d-flex flex-column">
+                <div class="chart-container flex-grow-1" style="height: 350px;">
+                    <canvas id="usageChart"></canvas>
+                </div>
+                <!-- Usage Summary Stats -->
+                <div class="row mt-3">
+                    <div class="col-4 text-center">
+                        <div class="border-right">
+                            <strong class="text-success">{{ available_pcs }}</strong><br>
+                            <small class="text-muted">Available</small>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="border-right">
+                            <strong class="text-warning">{{ in_use_pcs }}</strong><br>
+                            <small class="text-muted">In Use</small>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <strong class="text-info">{{ total_pcs }}</strong><br>
+                        <small class="text-muted">Total PCs</small>
+                    </div>
+                </div>
+                <!-- Fixed height placeholder to match left column -->
+                <div style="min-height: 60px; margin-top: 15px;">
+                    <div class="text-center text-muted">
+                        <small><i class="fas fa-chart-line"></i> Real-time PC monitoring</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block customJs %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+$(document).ready(function() {
+    // Ticket Status Pie Chart
+    const ticketCtx = document.getElementById('ticketChart').getContext('2d');
+    
+    // Define colors in frontend
+    const ticketColors = ['#dc3545', '#ffc107', '#28a745', '#6c757d']; // Red, Yellow, Green, Gray
+    
+    const ticketChart = new Chart(ticketCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ ticket_labels|safe }},
+            datasets: [{
+                data: {{ ticket_data|safe }},
+                backgroundColor: ticketColors,
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverBorderWidth: 3,
+                hoverBorderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            elements: {
+                arc: {
+                    borderWidth: 2
+                }
+            }
+        }
+    });
+
+    // PC Usage Bar Chart
+    const usageCtx = document.getElementById('usageChart').getContext('2d');
+    const usageChart = new Chart(usageCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ week_labels|safe }},
+            datasets: [{
+                label: 'PC Usage Sessions',
+                data: {{ week_data|safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+                borderRadius: 4,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Sessions: ' + context.parsed.y;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            elements: {
+                bar: {
+                    borderWidth: 2,
+                }
+            }
+        }
+    });
+
+    // Auto-refresh page every 30 seconds for live updates
+    setInterval(function() {
+        location.reload();
+    }, 30000);
+
+    // Add hover effects to info boxes
+    $('.info-box').hover(
+        function() {
+            $(this).addClass('shadow-lg').css('transform', 'translateY(-2px)');
+        },
+        function() {
+            $(this).removeClass('shadow-lg').css('transform', 'translateY(0px)');
+        }
+    );
+});
+</script>
+
+<style>
+.info-box {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, var(--bg-color), var(--bg-color-dark));
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    min-height: 100px;
+}
+
+.info-box.bg-info {
+    --bg-color: #17a2b8;
+    --bg-color-dark: #138496;
+}
+
+.info-box.bg-purple {
+    --bg-color: #6f42c1;
+    --bg-color-dark: #5a32a3;
+}
+
+.info-box.bg-warning {
+    --bg-color: #ffc107;
+    --bg-color-dark: #e0a800;
+}
+
+.info-box.bg-success {
+    --bg-color: #28a745;
+    --bg-color-dark: #1e7e34;
+}
+
+.info-box.bg-danger {
+    --bg-color: #dc3545;
+    --bg-color-dark: #c82333;
+}
+
+.info-box.bg-secondary {
+    --bg-color: #6c757d;
+    --bg-color-dark: #545b62;
+}
+
+.info-box-icon {
+    font-size: 2.5rem;
+    margin-right: 20px;
+    opacity: 0.8;
+}
+
+.info-box-content {
+    flex: 1;
+}
+
+.info-box-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-box-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    line-height: 1;
+    margin: 5px 0;
+}
+
+.info-box-more {
+    font-size: 0.8rem;
+}
+
+.chart-container {
+    position: relative;
+}
+
+.border-right {
+    border-right: 1px solid #dee2e6;
+}
+
+@media (max-width: 768px) {
+    .info-box {
+        margin-bottom: 15px;
+    }
+    
+    .info-box-number {
+        font-size: 2rem;
+    }
+    
+    .border-right {
+        border-right: none;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+    }
+}
+</style>
+{% endblock customJs %}

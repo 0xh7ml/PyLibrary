@@ -1,15 +1,15 @@
 ### Frontend:
 --- 
 - [ ] Admin Dashboard
-	- [ ] Dashboard/Stats/Home
-	- [ ] Reports (S/N, Id, Name, Dept, Location, Pc, Entry Time, Exit Time)
-		- [ ] Time Based Report -> PDF
-		- [ ] Daily Report
-		- [ ] Monthly Report
-		- [ ] Yearly Report
-		- [ ] Student Id wise Report
-		- [ ] Issue report
-	- [ ] Tickets/Issues
+	- [x] Dashboard/Stats/Home
+	- [x] Reports (S/N, Id, Name, Dept, Location, Pc, Entry Time, Exit Time)
+		- [x] Time Based Report -> PDF
+		- [x] Daily Report
+		- [x] Monthly Report
+		- [x] Yearly Report
+		- [x] Student Id wise Report
+		- [x] Issue report
+	- [x] Tickets/Issues
 		- [x] List Issues (S/N, Stu. Name, Stu. Id, Issue Type, Description, Reported At, Action)
 		- [x] View Issue -> show issues.
 - [ ] User
@@ -22,11 +22,11 @@
 --- 
 
 - [x] Model
-- [ ] Views
-	- [ ] Admin
+- [x] Views
+	- [x] Admin
 		- [ ] Auth
-		- [ ] Dashboard
-		- [ ] Reports
+		- [x] Dashboard
+		- [x] Reports
 		- [x] Tickets
 	- [ ] User
 		- [ ] Entry Monitor
