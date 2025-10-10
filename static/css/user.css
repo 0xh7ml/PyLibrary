@@ -1,12 +1,9 @@
-/* User template CSS extracted from templates/user/entry_monitor.html */
-
-/* --- 1. General & Theming (IUBAT Branding) --- */
 :root {
-    --iubat-green: #005C2B; /* Professional green from the logo */
-    --iubat-green-hover: #004C22; /* Darker green for hover */
-    --bg-color: #e7e7e7; /* Clean, light academic background */
+    --iubat-green: #005C2B; 
+    --iubat-green-hover: #004C22; 
+    --bg-color: #e7e7e7; 
     --card-bg: #FFFFFF;
-    --heading-text: #212529; /* Standard dark text */
+    --heading-text: #212529;
     --body-text: #495057;
 }
 
@@ -18,13 +15,13 @@ body {
     flex-direction: column;
 }
 
-/* --- 2. Animations --- */
+
 @keyframes fadeInSlideUp {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
     
-/* --- 3. Header --- */
+
 .header {
     background-color: var(--card-bg);
     border-bottom: 1px solid #dee2e6;
@@ -51,7 +48,6 @@ body {
     border-right: 1px solid #e9ecef;
 }
 
-/* --- 4. Login Card --- */
 .login-card {
     max-width: 450px;
     width: 100%;
@@ -70,15 +66,15 @@ body {
     color: var(--body-text);
 }
 
-/* --- 5. Logo --- */
+
 .iubat-logo {
-    max-width: 150px; /* Adjusted for better scale */
+    max-width: 150px;
     height: auto;
     display: block;
     margin: 0 auto 1.5rem auto;
 }
 
-/* --- 6. Form Elements --- */
+
 .form-control {
     background-color: #F8F9FA;
     border: 1px solid #DDE1E4;
@@ -95,7 +91,7 @@ body {
     box-shadow: 0 0 0 0.25rem rgba(0, 92, 43, 0.2);
 }
 
-/* Button with IUBAT Branding */
+
 .btn-primary {
     background-color: var(--iubat-green);
     border-color: var(--iubat-green);
@@ -110,3 +106,67 @@ body {
     transform: translateY(-3px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
+
+/* --- Enhanced header and card styling for a polished look --- */
+.header {
+    background: linear-gradient(90deg, #006936 0%, #004C22 100%);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+.header .navbar-brand {
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #fff;
+}
+
+.header .admin-links a {
+    color: rgba(255,255,255,0.9);
+}
+
+.header .admin-links .active-link {
+    color: #fff;
+    font-weight: 600;
+    position: relative;
+}
+
+.header .admin-links .active-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -8px;
+    height: 3px;
+    background: rgba(255,255,255,0.18);
+    border-radius: 2px;
+}
+
+.login-card {
+    background: linear-gradient(180deg, #ffffffcc 0%, #ffffff 100%);
+    border: none;
+    backdrop-filter: blur(4px);
+}
+
+.login-card .card-body {
+    padding: 2.25rem;
+}
+
+.service-icon {
+    font-size: 3.25rem;
+    color: var(--iubat-green);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 12px;
+    background: rgba(0,92,43,0.06);
+    margin: 0 auto 1.25rem auto;
+}
+
+/* Responsive tweaks */
+@media (max-width: 576px) {
+    .login-card { margin: 1rem; }
+    .btn-primary { font-size: 1rem; padding: 0.65rem 1rem; }
+}
+
