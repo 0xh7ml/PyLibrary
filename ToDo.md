@@ -10,8 +10,8 @@
 		- [ ] Student Id wise Report
 		- [ ] Issue report
 	- [ ] Tickets/Issues
-		- [ ] List Issues (S/N, Stu. Name, Stu. Id, Issue Type, Description, Reported At, Action)
-		- [ ] View Issue -> show issues.
+		- [x] List Issues (S/N, Stu. Name, Stu. Id, Issue Type, Description, Reported At, Action)
+		- [x] View Issue -> show issues.
 - [ ] User
 	- [ ] Entry Monitor (Scan to Entry) // main library timespan
 	- [ ] Service Monitor
@@ -21,13 +21,13 @@
 ### Backend
 --- 
 
-- [ ] Model
+- [x] Model
 - [ ] Views
 	- [ ] Admin
 		- [ ] Auth
 		- [ ] Dashboard
 		- [ ] Reports
-		- [ ] Tickets
+		- [x] Tickets
 	- [ ] User
 		- [ ] Entry Monitor
 		- [ ] Service Monitor
