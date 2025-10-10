@@ -1,0 +1,112 @@
+/* User template CSS extracted from templates/user/entry_monitor.html */
+
+/* --- 1. General & Theming (IUBAT Branding) --- */
+:root {
+    --iubat-green: #005C2B; /* Professional green from the logo */
+    --iubat-green-hover: #004C22; /* Darker green for hover */
+    --bg-color: #e7e7e7; /* Clean, light academic background */
+    --card-bg: #FFFFFF;
+    --heading-text: #212529; /* Standard dark text */
+    --body-text: #495057;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- 2. Animations --- */
+@keyframes fadeInSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+    
+/* --- 3. Header --- */
+.header {
+    background-color: var(--card-bg);
+    border-bottom: 1px solid #dee2e6;
+}
+
+.header .navbar-brand {
+    color: var(--heading-text);
+    font-weight: 600;
+}
+
+.header .admin-links a {
+    color: var(--body-text);
+    text-decoration: none;
+    padding: 0 0.75rem;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.header .admin-links a:hover {
+    color: var(--iubat-green);
+}
+    
+.header .admin-links a:not(:last-child) {
+    border-right: 1px solid #e9ecef;
+}
+
+/* --- 4. Login Card --- */
+.login-card {
+    max-width: 450px;
+    width: 100%;
+    border: none;
+    border-radius: 0.75rem;
+    background-color: var(--card-bg);
+    animation: fadeInSlideUp 0.8s ease-out forwards;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
+}
+    
+.login-card .card-body h1 {
+    color: var(--heading-text);
+}
+
+.login-card .card-body p {
+    color: var(--body-text);
+}
+
+/* --- 5. Logo --- */
+.iubat-logo {
+    max-width: 150px; /* Adjusted for better scale */
+    height: auto;
+    display: block;
+    margin: 0 auto 1.5rem auto;
+}
+
+/* --- 6. Form Elements --- */
+.form-control {
+    background-color: #F8F9FA;
+    border: 1px solid #DDE1E4;
+    color: var(--heading-text);
+    transition: all 0.3s ease;
+}
+
+.form-control::placeholder { color: #A0AEC0; }
+    
+.form-control:focus {
+    background-color: #fff;
+    color: var(--heading-text);
+    border-color: var(--iubat-green);
+    box-shadow: 0 0 0 0.25rem rgba(0, 92, 43, 0.2);
+}
+
+/* Button with IUBAT Branding */
+.btn-primary {
+    background-color: var(--iubat-green);
+    border-color: var(--iubat-green);
+    padding: 0.75rem;
+    font-weight: 600;
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background-color 0.2s ease-in-out;
+}
+
+.btn-primary:hover {
+    background-color: var(--iubat-green-hover);
+    border-color: var(--iubat-green-hover);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}

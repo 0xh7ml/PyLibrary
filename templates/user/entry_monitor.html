@@ -1,9 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IUBAT Library Digital Entry-Exit System</title>
+    <title>IUBAT Library Digital Entry System</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -11,141 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <style>
-        :root {
-            --iubat-green: #005C2B; 
-            --iubat-green-hover: #004C22; 
-            --bg-color: #FAFAFA; 
-            --card-bg: #FFFFFF;
-            --heading-text: #212529;
-            --body-text: #495057;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-color);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        
-        @keyframes fadeInSlideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        
-        .header {
-            background-color: var(--iubat-green); 
-            color: #FFFFFF;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .header .navbar-brand {
-            color: #FFFFFF; 
-            font-weight: 700;
-            font-size: 1.25rem;
-        }
-
-        .header .admin-links a {
-            color: rgba(255, 255, 255, 0.9); 
-            text-decoration: none;
-            padding: 0 0.75rem;
-            font-size: 0.9rem;
-            transition: color 0.3s ease;
-        }
-
-        .header .admin-links a:hover {
-            color: #FFFFFF;
-        }
-        
-        .header .admin-links a:not(:last-child) {
-            border-right: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-       
-        .login-card {
-            max-width: 480px; 
-            width: 100%;
-            border: 1px solid #e0e0e0; 
-            border-radius: 0.85rem;
-            background-color: var(--card-bg);
-            animation: fadeInSlideUp 0.8s ease-out forwards;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); 
-        }
-        
-        .login-card .card-body h1 {
-            color: var(--heading-text);
-        }
-
-        .login-card .card-body p {
-            color: var(--body-text);
-        }
-
-        
-        .iubat-logo {
-            max-width: 130px; /
-            height: auto;
-            display: block;
-            margin: 0 auto 1.5rem auto;
-            
-        }
-
-        
-        .form-control {
-            background-color: #FFFFFF; 
-            border: 1px solid #DDE1E4;
-            color: var(--heading-text);
-            padding: 0.75rem 1rem; 
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-        }
-       
-        .input-group-text {
-            background-color: #F0F0F0 !important; 
-            border: 1px solid #DDE1E4 !important;
-            border-right: none !important;
-        }
-
-        .form-control::placeholder { color: #A0AEC0; }
-        
-        .form-control:focus {
-            background-color: #fff;
-            color: var(--heading-text);
-            border-color: var(--iubat-green);
-           
-            box-shadow: none; 
-            border-width: 2px;
-        }
-        
-        .form-control:focus + .input-group-text {
-            border-color: var(--iubat-green) !important;
-            border-width: 2px;
-        }
-
-
-        
-        .btn-primary {
-            background-color: var(--iubat-green);
-            border-color: var(--iubat-green);
-            padding: 0.8rem 1.5rem; 
-            font-weight: 600;
-            font-size: 1.1rem;
-            border-radius: 0.5rem;
-            letter-spacing: 0.5px;
-            box-shadow: 0 4px 10px rgba(0, 92, 43, 0.2); 
-            transition: transform 0.2s ease-out, box-shadow 0.3s ease-out, background-color 0.2s ease-in-out;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--iubat-green-hover);
-            border-color: var(--iubat-green-hover);
-            transform: translateY(-2px); 
-            box-shadow: 0 6px 18px rgba(0, 92, 43, 0.3);
-        }
-
-    </style>
+    <link rel="stylesheet" href="{% static 'css/user.css' %}">
 </head>
 <body>
     <header class="header p-3">
@@ -154,7 +21,7 @@
                 <i class="fa-solid fa-book-open-reader me-2"></i>IUBAT Library
             </a>
             <div class="admin-links d-none d-sm-block">
-                <a href="#">Entry Monitor</a>
+                <a href="#" class="active-link">Entry Monitor</a> 
                 <a href="#">Service Monitor</a>
                 <a href="#">Admin</a>
             </div>
@@ -169,18 +36,18 @@
 
                 <h1 class="h3 fw-bold mb-2">Library Digital Entry System</h1>
                 <p class="mb-4">
-                    Please scan your ID to Enter the Library.
+                    Please scan or enter your ID to **Enter the Main Library**.
                 </p>
 
                 <form id="entryForm" method="POST">
 
                     <div class="mb-4">
-                        <label for="studentId" class="visually-hidden">Student ID</label>
+                        <label for="studentId" class="visually-hidden">Student/Faculty ID</label>
                         <div class="input-group">
                            <span class="input-group-text border-end-0">
                                 <i class="fa-solid fa-id-card text-muted"></i>
                            </span>
-                             <input type="text" class="form-control form-control-lg border-start-0" id="studentId" placeholder="Enter Student ID" required autofocus aria-label="Enter Student ID">
+                            <input type="text" class="form-control form-control-lg border-start-0" id="studentId" placeholder="Enter Student/Faculty ID" required autofocus aria-label="Enter Student or Faculty ID">
                         </div>
                     </div>
                     <div class="d-grid">
@@ -195,13 +62,16 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
     <script>
-       
+        // --- Essential Fix for Scanner/Enter Key Usage ---
+        // Prevents scanner's final 'Enter' output from prematurely submitting the form.
         document.getElementById('entryForm').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
             }
         });
 
+        // Ensure the input field is focused immediately on page load,
+        // which is crucial for quick use with a scanner.
         document.addEventListener('DOMContentLoaded', (event) => {
             document.getElementById('studentId').focus();
         });
