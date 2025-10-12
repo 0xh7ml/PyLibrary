@@ -74,7 +74,7 @@ class LibraryEntry(models.Model):
     def duration(self):
         """Calculate duration spent in library"""
         if self.exit_time:
-            return self.exit_time - self.entry_time
+            return str(self.exit_time - self.entry_time).split('.')[0]  # Return duration without microseconds
         return None
 
 class ELibrarySession(models.Model):

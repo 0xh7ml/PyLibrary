@@ -18,3 +18,4 @@ typing_extensions==4.15.0
 tzdata==2024.1
 wfastcgi==3.0.0
 whitenoise==6.7.0
+faker
