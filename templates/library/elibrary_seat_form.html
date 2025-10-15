@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}
+    {% if form.instance.pk %}Edit ELibrary Seat{% else %}Add ELibrary Seat{% endif %}
+{% endblock %}
+
+{% block content_header %}
+    {% if form.instance.pk %}Edit ELibrary Seat{% else %}Add ELibrary Seat{% endif %}
+{% endblock content_header %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+<li class="breadcrumb-item"><a href="{% url 'library:elibrary_seat_list' %}">ELibrary Seats</a></li>
+<li class="breadcrumb-item active">
+    {% if form.instance.pk %}Edit{% else %}Add{% endif %}
+</li>
+{% endblock breadcrumb %}
+
+{% block content %}
+<div class="col-md-8">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                {% if form.instance.pk %}Edit ELibrary Seat{% else %}Add ELibrary Seat{% endif %}
+            </h3>
+        </div>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <div class="card-body">
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.pc_no.id_for_label }}">PC Number</label>
+                            {{ form.pc_no }}
+                            {% if form.pc_no.errors %}
+                                <div class="text-danger">
+                                    {{ form.pc_no.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.status.id_for_label }}">Status</label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <div class="text-danger">
+                                    {{ form.status.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary">
+                    {% if form.instance.pk %}Update{% else %}Save{% endif %}
+                </button>
+                <a href="{% url 'library:elibrary_seat_list' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}

@@ -1,4 +1,5 @@
 from django.db import models
+from Library.models import Student
 
 # Create your models here.
 class Ticket(models.Model):
@@ -17,6 +18,7 @@ class Ticket(models.Model):
 
     title = models.CharField(max_length=200)
     description = models.TextField()
+    issued_by = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, blank=True)
     issue_type = models.CharField(max_length=20, choices=ISSUE_TYPES)
     status = models.CharField(max_length=20, choices=ISSUE_STATUS, default='open')
     created_at = models.DateTimeField(auto_now_add=True)
