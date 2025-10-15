@@ -1,6 +1,6 @@
 ### Frontend:
 --- 
-- [ ] Admin Dashboard
+- [x] Admin Dashboard
 	- [x] Dashboard/Stats/Home
 	- [x] Reports (S/N, Id, Name, Dept, Location, Pc, Entry Time, Exit Time)
 		- [x] Time Based Report -> PDF
@@ -12,10 +12,10 @@
 	- [x] Tickets/Issues
 		- [x] List Issues (S/N, Stu. Name, Stu. Id, Issue Type, Description, Reported At, Action)
 		- [x] View Issue -> show issues.
-- [ ] User
-	- [ ] Entry Monitor (Scan to Entry) // main library timespan
-	- [ ] Service Monitor
-		- [ ] Scan id (Scan to entry + exit) // computer access timespan
+- [x] User
+	- [x] Entry Monitor (Scan to Entry) // main library timespan
+	- [x] Service Monitor
+		- [x] Scan id (Scan to entry + exit) // computer access timespan
 		- [ ] Report Page // submission any issues
 
 ### Backend
@@ -28,7 +28,7 @@
 		- [x] Dashboard
 		- [x] Reports
 		- [x] Tickets
-	- [ ] User
-		- [ ] Entry Monitor
-		- [ ] Service Monitor
-		- [ ] Desk Allocation
+	- [x] User
+		- [x] Entry Monitor
+		- [x] Service Monitor
+		- [x] Desk Allocation
