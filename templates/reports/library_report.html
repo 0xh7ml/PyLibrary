@@ -75,6 +75,7 @@
                             <th>Department</th>
                             <th>Entry Time</th>
                             <th>Exit Time</th>
+                            <th>Status</th>
                             <th>Duration</th>
                         </tr>
                     </thead>
@@ -93,11 +94,18 @@
                             <td>
                                 <small class="text-muted">{{ item.exit_time|date:"SHORT_DATETIME_FORMAT"|upper }}</small>
                             </td>
+                            <td> 
+                                {% if item.status == "Entered" %}
+                                    <span class="badge badge-warning">Active</span>
+                                {% elif item.status == "Exited" %}
+                                    <span class="badge badge-success">Exited</span>
+                                {% endif %}
+                            </td>
                             <td>
                                 {% if item.duration %}
                                     <span class="text-success">{{ item.duration }}</span>
                                 {% else %}
-                                    <span class="badge badge-warning">Active</span>
+                                    <small class="text-muted">--:--</small>
                                 {% endif %}
                             </td>
                         </tr>

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Departments{% endblock %}
+
+{% block content_header %}Department Management{% endblock content_header %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+<li class="breadcrumb-item active">Departments</li>
+{% endblock breadcrumb %}
+
+{% block content %}
+<div class="col-12">
+    <!-- Filter Form -->
+    <div class="card">
+        <div class="card-body">
+            <form method="GET">
+                <div class="row g-2 align-items-center">
+                    <div class="col-auto">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search text-primary"></i>
+                            </span>
+                            <input type="text" name="search" class="form-control" 
+                                    placeholder="Search departments..." value="{{ search }}" style="min-width: 180px;">
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="btn-group" role="group">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-search me-1"></i>Search
+                            </button>
+                            {% if search %}
+                            <a href="{% url 'library:department_list' %}" class="btn btn-info px-4">
+                                <i class="fas fa-undo me-1"></i>Reset
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-auto ms-auto">
+                        <a href="{% url 'library:department_create' %}" class="btn btn-success px-4">
+                            <i class="fas fa-plus me-1"></i>Add Department
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Data Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered text-nowrap">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th>S/N</th>
+                            <th>Department Name</th>
+                            <th>Students Count</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for department in departments %}
+                        <tr>
+                            <td class="text-center">{{  departments.start_index|add:forloop.counter0 }}</td>
+                            <td>{{ department.name }}</td>
+                            <td class="text-center">
+                                <span class="badge badge-info">
+                                    {{ department.student_set.count }} student{{ department.student_set.count|pluralize }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'library:department_update' department.pk %}" 
+                                       class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4">
+                                <div class="empty-state">
+                                    <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">No departments found</h5>
+                                    {% if search %}
+                                        <p class="text-muted">No results matching "{{ search }}"</p>
+                                    {% else %}
+                                        <p class="text-muted">Start by adding your first department.</p>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% include "utils/pagination.html" with data=departments %}
+    </div>
+</div>
+{% endblock content %}

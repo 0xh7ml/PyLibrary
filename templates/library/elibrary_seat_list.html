@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}ELibrary Seats{% endblock %}
+
+{% block content_header %}ELibrary Seats Management{% endblock content_header %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+<li class="breadcrumb-item active">ELibrary Seats</li>
+{% endblock breadcrumb %}
+
+{% block content %}
+<div class="col-12">
+    <!-- Filter Form -->
+    <div class="card">
+        <div class="card-body">
+            <form method="GET">
+                <div class="row g-2 align-items-center">
+                    <div class="col-auto">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search text-primary"></i>
+                            </span>
+                            <input type="text" name="search" class="form-control" 
+                                    placeholder="Search by PC number..." value="{{ request.GET.search }}" style="min-width: 180px;">
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-cog text-warning"></i>
+                            </span>
+                            <select class="form-select" name="status" style="min-width: 180px;">
+                                <option value="">-- All Status --</option>
+                                <option value="Available" {% if request.GET.status == "Available" %}selected{% endif %}>Available</option>
+                                <option value="Reserved" {% if request.GET.status == "Reserved" %}selected{% endif %}>Reserved</option>
+                                <option value="Maintenance" {% if request.GET.status == "Maintenance" %}selected{% endif %}>Maintenance</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="btn-group" role="group">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-search me-1"></i>Search
+                            </button>
+                            {% if request.GET.search or request.GET.status %}
+                            <a href="{% url 'library:elibrary_seat_list' %}" class="btn btn-info px-4">
+                                <i class="fas fa-undo me-1"></i>Reset
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-auto ms-auto">
+                        <a href="{% url 'library:elibrary_seat_create' %}" class="btn btn-success px-4">
+                            <i class="fas fa-plus me-1"></i>Add ELibrary Seat
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Data Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                {% if elibrary_seats %}
+                <table class="table table-bordered text-nowrap">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th>S/N</th>
+                            <th>PC Number</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for seat in elibrary_seats %}
+                        <tr>
+                            <td class="text-center">{{  elibrary_seats.start_index|add:forloop.counter0 }}</td>
+                            <td>
+                                <strong class="text-primary">{{ seat.pc_no }}</strong>
+                            </td>
+                            <td class="text-center">
+                                {% if seat.status == "Available" %}
+                                    <span class="badge badge-success">Available</span>
+                                {% elif seat.status == "Reserved" %}
+                                    <span class="badge badge-warning">Reserved</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Maintenance</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'library:elibrary_seat_update' seat.pk %}" 
+                                       class="btn btn-info" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center py-4">
+                    <div class="empty-state">
+                        <i class="fas fa-desktop fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No ELibrary Seats Found</h5>
+                        {% if request.GET.search or request.GET.status %}
+                            <p class="text-muted">No results matching your search criteria.</p>
+                        {% else %}
+                            <p class="text-muted">Start by adding your first ELibrary seat.</p>
+                        {% endif %}
+                        <a href="{% url 'library:elibrary_seat_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add First Seat
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% include "utils/pagination.html" with data=elibrary_seats %}
+    </div>
+</div>
+{% endblock content %}

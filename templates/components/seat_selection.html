@@ -1,0 +1,207 @@
+<style>
+    :root {
+        /* Status Colors - Same as pc_layout */
+        --status-available: #37C57E;   /* Green */
+        --status-occupied: #F44558;    /* Red */
+        --status-reserved: #2081C4;    /* Blue */
+        --status-maintenance: #FFA500; /* Orange */
+        
+        /* Layout Colors */
+        --bg-color: #F8F9FA;
+        --cell-spacing: 0.5rem;
+    }
+
+    .seat-selection-container {
+        padding: 1rem 0;
+        background-color: var(--bg-color);
+        border-radius: 0.5rem;
+    }
+
+    /* Seat Cell Styling */
+    .seat-cell {
+        cursor: pointer;
+        height: 60px;
+        width: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: white;
+        border-radius: 0.5rem;
+        margin: 0.25rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        user-select: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        border: 2px solid transparent;
+    }
+
+    /* Status Colors */
+    .seat-available { 
+        background-color: var(--status-available);
+        border-color: #2d8f57;
+    }
+    .seat-reserved { 
+        background-color: var(--status-reserved);
+        border-color: #1a6ba3;
+    }
+    .seat-maintenance { 
+        background-color: var(--status-maintenance);
+        border-color: #e69500;
+    }
+
+    /* Interactive States */
+    .seat-cell:hover.seat-available {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(55, 197, 126, 0.4);
+        border-color: #2d8f57;
+    }
+
+    .seat-cell.seat-reserved,
+    .seat-cell.seat-maintenance {
+        cursor: not-allowed;
+        opacity: 0.8;
+    }
+
+    .seat-cell:active.seat-available {
+        transform: scale(0.98);
+    }
+
+    /* Grid Layout */
+    .seats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        gap: 0.5rem;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+
+    /* For better mobile responsiveness */
+    @media (max-width: 576px) {
+        .seats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+            gap: 0.3rem;
+            padding: 0.5rem;
+        }
+        
+        .seat-cell {
+            height: 50px;
+            width: 50px;
+            font-size: 0.8rem;
+        }
+    }
+
+    /* Status Legend */
+    .status-legend {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 0.25rem;
+        border: 2px solid transparent;
+    }
+
+    .legend-available { 
+        background-color: var(--status-available);
+        border-color: #2d8f57;
+    }
+    .legend-reserved { 
+        background-color: var(--status-reserved);
+        border-color: #1a6ba3;
+    }
+    .legend-maintenance { 
+        background-color: var(--status-maintenance);
+        border-color: #e69500;
+    }
+
+    /* Info Header */
+    .seat-info {
+        text-align: center;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .seat-info h5 {
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .seat-info p {
+        margin: 0;
+        opacity: 0.9;
+    }
+</style>
+
+<div class="seat-selection-container">
+    <!-- Header Info -->
+    <div class="seat-info">
+        <h5><i class="fas fa-desktop me-2"></i>E-Library Seat Selection</h5>
+        <p><strong>{{ total_available }}</strong> of <strong>{{ total_seats }}</strong> seats available</p>
+    </div>
+
+    {% if all_seats %}
+        <!-- Seats Grid -->
+        <div class="seats-grid">
+            {% for seat in all_seats %}
+                <div class="seat-cell seat-{{ seat.status|lower }}" 
+                     data-seat-id="{{ seat.id }}" 
+                     data-seat-number="{{ seat.pc_no }}"
+                     data-status="{{ seat.status|lower }}"
+                     {% if seat.status == 'Available' %}
+                         onclick="selectSeatElement(this)"
+                     {% endif %}>
+                    {{ seat.pc_no }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Status Legend -->
+        <div class="status-legend">
+            <div class="legend-item">
+                <div class="legend-color legend-available"></div>
+                <span>Available</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-reserved"></div>
+                <span>Reserved</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-maintenance"></div>
+                <span>Maintenance</span>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- No Seats Available -->
+        <div class="text-center py-5">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                <h5>No Seats Found</h5>
+                <p class="mb-0">No e-library seats are configured in the system.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
