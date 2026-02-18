@@ -9,5 +9,6 @@ urlpatterns = [
     path('api/entry-exit/', main_library_handler, name='entry_exit_handler'),
     path('api/service-monitor/', service_monitor_handler, name='service_monitor_handler'),
     path('api/seat-selection/', seat_selection_handler, name='seat_selection_handler'),
+    path('api/submit-ticket/', submit_ticket_handler, name='submit_ticket_handler'),
     path('pc-layout/', pc_layout, name='pc_layout'),
 ]

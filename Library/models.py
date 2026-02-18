@@ -1,5 +1,7 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 # Create your models here.
 class Department(models.Model):
@@ -43,6 +45,19 @@ class Student(models.Model):
     def __str__(self):
         return f"{self.name} ({self.id_no})"
 
+class Faculty(models.Model):
+    name = models.CharField(max_length=100)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    id_no = models.CharField(max_length=50, unique=True)
+
+    class Meta:
+        verbose_name = "Faculty"
+        verbose_name_plural = "Faculty"
+        db_table = "tb_faculty"
+
+    def __str__(self):
+        return f"{self.name} ({self.id_no})"
+
 class LibraryEntry(models.Model):
     """Track main library entry/exit"""
     ENTRY_STATUS_CHOICES = [
@@ -50,7 +65,14 @@ class LibraryEntry(models.Model):
         ('Exited', 'Exited'),
     ]
     
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    # Generic foreign key to support both Student and Faculty
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    user = GenericForeignKey('content_type', 'object_id')
+    
+    # Legacy field for backward compatibility - will be deprecated
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, blank=True)
+    
     entry_time = models.DateTimeField(auto_now_add=True)
     exit_time = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=ENTRY_STATUS_CHOICES, default='Entered')
@@ -62,7 +84,8 @@ class LibraryEntry(models.Model):
         ordering = ['-entry_time']
 
     def __str__(self):
-        return f"{self.student.name} - {self.entry_time.strftime('%Y-%m-%d %H:%M')}"
+        user_name = self.user.name if self.user else (self.student.name if self.student else "Unknown")
+        return f"{user_name} - {self.entry_time.strftime('%Y-%m-%d %H:%M')}"
     
     def mark_exit(self):
         """Mark the exit time and change status"""
@@ -77,6 +100,33 @@ class LibraryEntry(models.Model):
             return str(self.exit_time - self.entry_time).split('.')[0]  # Return duration without microseconds
         return None
 
+    @property
+    def user_name(self):
+        """Get the user's name (Student or Faculty)"""
+        if self.user:
+            return self.user.name
+        elif self.student:
+            return self.student.name
+        return "Unknown"
+    
+    @property
+    def user_id_no(self):
+        """Get the user's ID number (Student or Faculty)"""
+        if self.user:
+            return self.user.id_no
+        elif self.student:
+            return self.student.id_no
+        return "Unknown"
+    
+    @property
+    def user_type(self):
+        """Get the user type (Student or Faculty)"""
+        if self.user:
+            return self.content_type.model.capitalize()
+        elif self.student:
+            return "Student"
+        return "Unknown"
+
 class ELibrarySession(models.Model):
     """Track e-library seat usage sessions"""
     SESSION_STATUS_CHOICES = [
@@ -84,7 +134,14 @@ class ELibrarySession(models.Model):
         ('Exited', 'Exited'),
     ]
     
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    # Generic foreign key to support both Student and Faculty
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    user = GenericForeignKey('content_type', 'object_id')
+    
+    # Legacy field for backward compatibility - will be deprecated
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, blank=True)
+    
     seat = models.ForeignKey(ElibrarySeat, on_delete=models.CASCADE)
     library_entry = models.ForeignKey(LibraryEntry, on_delete=models.CASCADE, null=True, blank=True)
     start_time = models.DateTimeField(auto_now_add=True)
@@ -98,7 +155,8 @@ class ELibrarySession(models.Model):
         ordering = ['-start_time']
 
     def __str__(self):
-        return f"{self.student.name} - {self.seat.pc_no} - {self.start_time.strftime('%Y-%m-%d %H:%M')}"
+        user_name = self.user.name if self.user else (self.student.name if self.student else "Unknown")
+        return f"{user_name} - {self.seat.pc_no} - {self.start_time.strftime('%Y-%m-%d %H:%M')}"
     
     def end_session(self):
         """End the e-library session"""
@@ -132,3 +190,30 @@ class ELibrarySession(models.Model):
     def formatted_end_time(self):
         """Get formatted end time for display"""
         return self.end_time.strftime('%Y-%m-%d %H:%M:%S') if self.end_time else 'Not Exited'
+    
+    @property
+    def user_name(self):
+        """Get the user's name (Student or Faculty)"""
+        if self.user:
+            return self.user.name
+        elif self.student:
+            return self.student.name
+        return "Unknown"
+    
+    @property
+    def user_id_no(self):
+        """Get the user's ID number (Student or Faculty)"""
+        if self.user:
+            return self.user.id_no
+        elif self.student:
+            return self.student.id_no
+        return "Unknown"
+    
+    @property
+    def user_type(self):
+        """Get the user type (Student or Faculty)"""
+        if self.user:
+            return self.content_type.model.capitalize()
+        elif self.student:
+            return "Student"
+        return "Unknown"

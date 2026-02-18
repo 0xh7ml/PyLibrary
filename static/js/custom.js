@@ -1,13 +1,4 @@
 /**
- * IUBAT Library Management System - Custom JavaScript
- * Contains all JavaScript functions for Entry Monitor, Service Monitor, and Seat Selection
- */
-
-// ============================================================================
-// GLOBAL UTILITY FUNCTIONS
-// ============================================================================
-
-/**
  * Get CSRF token from Django form
  * @returns {string} CSRF token
  */
@@ -175,9 +166,9 @@ function startProgressBar(toastElement, duration) {
  */
 function getToastDuration(type) {
     switch(type) {
-        case 'success': return 2000;  // 2 seconds
-        case 'info': return 1500;     // 1.5 seconds
-        case 'warning': return 2500;  // 2.5 seconds
+        case 'success': return 4000;  // 2 seconds
+        case 'info': return 4000;     // 1.5 seconds
+        case 'warning': return 4000;  // 2.5 seconds
         case 'error': return 4000;    // 4 seconds
         default: return 4000;
     }
@@ -543,6 +534,17 @@ function showSeatSelectionModal(studentName, studentId) {
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('seatSelectionModal'));
     modal.show();
+    
+    // Prevent auto-focus on close button
+    const seatSelectionModal = document.getElementById('seatSelectionModal');
+    seatSelectionModal.addEventListener('shown.bs.modal', function () {
+        // Remove focus from close button
+        const closeButton = this.querySelector('.btn-close');
+        if (closeButton) {
+            closeButton.blur();
+        }
+        // Don't focus on any specific element, let user click naturally
+    });
 }
 
 /**
@@ -624,6 +626,9 @@ function initializeServiceMonitor() {
     optimizeForBarcode('studentId', 'serviceForm');
     maintainInputFocus('studentId');
     
+    // Initialize ticket submission functionality
+    initializeTicketSubmission();
+    
     // Handle form submission
     document.getElementById('serviceForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -647,6 +652,9 @@ function initializeServiceMonitor() {
             studentIdInput.focus();
             return false;
         }
+        
+        // Store student ID in localStorage for ticket submission
+        localStorage.setItem('currentStudentId', studentId);
         
         // Show loading state
         submitBtn.disabled = true;
@@ -675,9 +683,18 @@ function initializeServiceMonitor() {
                 if (response.data.requires_seat_selection) {
                     // Show seat selection modal
                     showSeatSelectionModal(response.data.student_name, response.data.student_id);
+                    
+                    // Listen for seat selection to clear localStorage
+                    document.addEventListener('seatSelected', function(event) {
+                        // Clear student ID from localStorage when seat is selected
+                        localStorage.removeItem('currentStudentId');
+                    }, { once: true });
+                    
                 } else {
                     // Show success message for exit
                     showMessage(message, 'info');
+                    // Clear localStorage on exit
+                    localStorage.removeItem('currentStudentId');
                 }
                 
                 // Clear form
@@ -719,6 +736,125 @@ function initializeServiceMonitor() {
             // Reset button state
             submitBtn.disabled = false;
             btnText.innerHTML = 'Access Services / Exit';
+        });
+    });
+}
+
+// ============================================================================
+// TICKET SUBMISSION FUNCTIONS
+// ============================================================================
+
+/**
+ * Initialize ticket submission functionality
+ */
+function initializeTicketSubmission() {
+    const submitTicketBtn = document.getElementById('submitTicketBtn');
+    const submitTicketFormBtn = document.getElementById('submitTicketFormBtn');
+    const ticketForm = document.getElementById('ticketSubmissionForm');
+    
+    if (!submitTicketBtn || !submitTicketFormBtn || !ticketForm) {
+        console.log('Ticket submission elements not found');
+        return;
+    }
+    
+    // Handle ticket modal show - check if student ID is available
+    const submitTicketModal = document.getElementById('submitTicketModal');
+    if (submitTicketModal) {
+        submitTicketModal.addEventListener('show.bs.modal', function () {
+            const studentId = localStorage.getItem('currentStudentId');
+            if (!studentId) {
+                showMessage('Please scan your Student/Faculty ID first to access e-library services before reporting an issue.', 'warning');
+                return false;
+            }
+        });
+        
+        // Focus on title input when modal is fully shown (one time only)
+        submitTicketModal.addEventListener('shown.bs.modal', function () {
+            const titleInput = document.getElementById('ticketTitle');
+            if (titleInput && !titleInput.value) {
+                titleInput.focus();
+            }
+        });
+    }
+    
+    // Handle ticket form submission
+    submitTicketFormBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const studentId = localStorage.getItem('currentStudentId');
+        if (!studentId) {
+            showMessage('Please scan your Student/Faculty ID first.', 'error');
+            return;
+        }
+        
+        const title = document.getElementById('ticketTitle').value.trim();
+        const issueType = document.getElementById('ticketIssueType').value;
+        const description = document.getElementById('ticketDescription').value.trim();
+        
+        // Validate form
+        if (!title) {
+            showMessage('Please enter a title for the issue.', 'warning');
+            document.getElementById('ticketTitle').focus();
+            return;
+        }
+        
+        if (!issueType) {
+            showMessage('Please select an issue type.', 'warning');
+            document.getElementById('ticketIssueType').focus();
+            return;
+        }
+        
+        if (!description) {
+            showMessage('Please enter a description of the issue.', 'warning');
+            document.getElementById('ticketDescription').focus();
+            return;
+        }
+        
+        // Show loading state
+        submitTicketFormBtn.disabled = true;
+        submitTicketFormBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+        
+        // Submit ticket
+        axios.post('/api/submit-ticket/', {
+            student_id: studentId,
+            title: title,
+            issue_type: issueType,
+            description: description
+        }, {
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json'
+            },
+            timeout: 10000
+        })
+        .then(function(response) {
+            if (response.data.status === 'success') {
+                showMessage(response.data.message, 'success');
+                
+                // Reset form
+                ticketForm.reset();
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(submitTicketModal);
+                modal.hide();
+            } else {
+                showMessage(response.data.message || 'Failed to submit ticket', 'error');
+            }
+        })
+        .catch(function(error) {
+            console.error('Ticket submission error:', error);
+            let errorMessage = 'Error submitting ticket. Please try again.';
+            
+            if (error.response && error.response.data && error.response.data.message) {
+                errorMessage = error.response.data.message;
+            }
+            
+            showMessage(errorMessage, 'error');
+        })
+        .finally(function() {
+            // Reset button state
+            submitTicketFormBtn.disabled = false;
+            submitTicketFormBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Submit Ticket';
         });
     });
 }
