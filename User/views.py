@@ -4,11 +4,47 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.db import transaction
-from Library.models import Student, LibraryEntry, ELibrarySession, ElibrarySeat
+from django.contrib.contenttypes.models import ContentType
+from Library.models import Student, Faculty, LibraryEntry, ELibrarySession, ElibrarySeat
+from Tickets.models import Ticket
 import json
 import logging
 
 logger = logging.getLogger(__name__)
+
+def get_user_by_id(user_id):
+    """Get user (Student or Faculty) by ID number"""
+    # First try to find a student
+    student = Student.objects.filter(id_no=user_id).first()
+    if student:
+        return student, 'student'
+    
+    # Then try to find a faculty
+    faculty = Faculty.objects.filter(id_no=user_id).first()
+    if faculty:
+        return faculty, 'faculty'
+    
+    return None, None
+
+def create_library_entry(user, user_type):
+    """Create a LibraryEntry for either Student or Faculty"""
+    content_type = ContentType.objects.get_for_model(user.__class__)
+    return LibraryEntry.objects.create(
+        content_type=content_type,
+        object_id=user.id,
+        status='Entered'
+    )
+
+def create_elibrary_session(user, user_type, seat, library_entry=None):
+    """Create an ELibrarySession for either Student or Faculty"""
+    content_type = ContentType.objects.get_for_model(user.__class__)
+    return ELibrarySession.objects.create(
+        content_type=content_type,
+        object_id=user.id,
+        seat=seat,
+        library_entry=library_entry,
+        status='Active'
+    )
 
 def entry_monitor(request):
     """Render the entry monitoring page"""
@@ -28,27 +64,27 @@ def main_library_handler(request):
         service_type = data.get('service_type')
 
         if not student_id:
-            return JsonResponse({'message': 'Student ID is required'}, status=400)
+            return JsonResponse({'message': 'Student/Faculty ID is required'}, status=400)
 
         # This handler is specifically for library entry/exit (Entry Monitor)
         if service_type != 'library':
             return JsonResponse({'message': 'Invalid service type for entry monitor'}, status=400)
 
         try:
-            # Check if the student exists
-            student = Student.objects.filter(id_no=student_id).first()
-            if not student:
-                logger.error(f"Student not found: {student_id}")
+            # Check if the user exists (Student or Faculty)
+            user, user_type = get_user_by_id(student_id)
+            if not user:
+                logger.error(f"User not found: {student_id}")
                 return JsonResponse({
                     'status': 'error',
-                    'message': 'Student not found. Please check the ID and try again.'
+                    'message': 'Student/Faculty not found. Please check the ID and try again.'
                 }, status=404)
         
         except Exception as e:
-            logger.error(f"Error finding student {student_id}: {str(e)}")
+            logger.error(f"Error finding user {student_id}: {str(e)}")
             return JsonResponse({
                 'status': 'error',
-                'message': 'Error finding student'
+                'message': 'Error finding user'
             }, status=500)
         
         try:
@@ -56,38 +92,53 @@ def main_library_handler(request):
                 # Get today's date
                 today = timezone.now().date()
                 
-                # Check if student has an active library entry today (entered but not exited)
+                # Check if user has an active library entry today (entered but not exited)
+                # First check with new generic FK
+                content_type = ContentType.objects.get_for_model(user.__class__)
                 today_entry = LibraryEntry.objects.filter(
-                    student=student,
+                    content_type=content_type,
+                    object_id=user.id,
                     entry_time__date=today,
                     status='Entered',
                     exit_time__isnull=True
                 ).first()
                 
+                # If not found and user is a student, check legacy field for backward compatibility
+                if not today_entry and user_type == 'student':
+                    today_entry = LibraryEntry.objects.filter(
+                        student=user,
+                        entry_time__date=today,
+                        status='Entered',
+                        exit_time__isnull=True
+                    ).first()
+                
                 if today_entry:
-                    # Student is already inside - mark as exit
+                    # User is already inside - mark as exit
                     today_entry.mark_exit()
                     action = 'Exited'
-                    message = f'Student {student.name} has exited the library'
-                    logger.info(f"Student {student_id} ({student.name}) exited library")
+                    message = f'{user_type.title()} {user.name} has exited the library'
+                    logger.info(f"{user_type.title()} {student_id} ({user.name}) exited library")
                 else:
-                    # Student is entering - create new entry record
-                    LibraryEntry.objects.create(student=student, status='Entered')
+                    # User is entering - create new entry record
+                    create_library_entry(user, user_type)
                     action = 'Entered'
-                    message = f'Student {student.name} has entered the library'
-                    logger.info(f"Student {student_id} ({student.name}) entered library")
+                    message = f'{user_type.title()} {user.name} has entered the library'
+                    logger.info(f"{user_type.title()} {student_id} ({user.name}) entered library")
                 
                 return JsonResponse({
                     'status': 'success', 
                     'action': action,
                     'message': message,
-                    'student_name': student.name,
-                    'student_id': student.id,
-                    'department': student.department.name if student.department else 'N/A'
+                    'student_name': user.name,  # Keep 'student_name' for backward compatibility
+                    'user_name': user.name,
+                    'user_type': user_type,
+                    'student_id': user.id,
+                    'user_id': user.id,
+                    'department': user.department.name if user.department else 'N/A'
                 })
                 
         except Exception as e:
-            logger.error(f"Error processing library entry/exit for student {student_id}: {str(e)}")
+            logger.error(f"Error processing library entry/exit for user {student_id}: {str(e)}")
             return JsonResponse({
                 'status': 'error',
                 'message': 'Internal server error'
@@ -105,27 +156,27 @@ def service_monitor_handler(request):
         service_type = data.get('service_type')
 
         if not student_id:
-            return JsonResponse({'message': 'Student ID is required'}, status=400)
+            return JsonResponse({'message': 'Student/Faculty ID is required'}, status=400)
 
         # This handler is specifically for e-library service (Service Monitor)
         if service_type != 'elibrary':
             return JsonResponse({'message': 'Invalid service type for service monitor'}, status=400)
 
         try:
-            # Check if the student exists
-            student = Student.objects.filter(id_no=student_id).first()
-            if not student:
-                logger.error(f"Student not found: {student_id}")
+            # Check if the user exists (Student or Faculty)
+            user, user_type = get_user_by_id(student_id)
+            if not user:
+                logger.error(f"User not found: {student_id}")
                 return JsonResponse({
                     'status': 'error',
-                    'message': 'Student not found. Please check the ID and try again.'
+                    'message': 'Student/Faculty not found. Please check the ID and try again.'
                 }, status=404)
         
         except Exception as e:
-            logger.error(f"Error finding student {student_id}: {str(e)}")
+            logger.error(f"Error finding user {student_id}: {str(e)}")
             return JsonResponse({
                 'status': 'error',
-                'message': 'Error finding student'
+                'message': 'Error finding user'
             }, status=500)
         
         try:
@@ -133,32 +184,54 @@ def service_monitor_handler(request):
                 # Get today's date
                 today = timezone.now().date()
                 
-                # First check if student has entered the main library today
+                # First check if user has entered the main library today
+                content_type = ContentType.objects.get_for_model(user.__class__)
                 today_library_entry = LibraryEntry.objects.filter(
-                    student=student,
+                    content_type=content_type,
+                    object_id=user.id,
                     entry_time__date=today,
                     status='Entered'
                 ).first()
                 
+                # If not found with generic FK and user is student, check legacy field
+                if not today_library_entry and user_type == 'student':
+                    today_library_entry = LibraryEntry.objects.filter(
+                        student=user,
+                        entry_time__date=today,
+                        status='Entered'
+                    ).first()
+                
                 if not today_library_entry:
-                    # Student has not entered main library today
+                    # User has not entered main library today
                     return JsonResponse({
                         'status': 'error',
                         'message': 'Enter Main Library First',
-                        'student_name': student.name,
+                        'student_name': user.name,  # Keep for backward compatibility
+                        'user_name': user.name,
+                        'user_type': user_type,
                         'requires_library_entry': True
                     }, status=400)
                 
-                # Check if student has an active e-library session today
+                # Check if user has an active e-library session today
                 today_session = ELibrarySession.objects.filter(
-                    student=student,
+                    content_type=content_type,
+                    object_id=user.id,
                     start_time__date=today,
                     status='Active',
                     end_time__isnull=True
                 ).first()
                 
+                # If not found with generic FK and user is student, check legacy field
+                if not today_session and user_type == 'student':
+                    today_session = ELibrarySession.objects.filter(
+                        student=user,
+                        start_time__date=today,
+                        status='Active',
+                        end_time__isnull=True
+                    ).first()
+                
                 if today_session:
-                    # Student is ending e-library service
+                    # User is ending e-library service
                     today_session.end_session()
                     
                     # Free up the seat
@@ -170,19 +243,21 @@ def service_monitor_handler(request):
                         seat_info = ""
                     
                     action = 'Service Ended'
-                    message = f'Student {student.name} has ended e-library service{seat_info}'
+                    message = f'{user_type.title()} {user.name} has ended e-library service{seat_info}'
                     
-                    logger.info(f"Student {student_id} ({student.name}) ended e-library service")
+                    logger.info(f"{user_type.title()} {student_id} ({user.name}) ended e-library service")
                     
                     return JsonResponse({
                         'status': 'success', 
                         'action': action,
                         'message': message,
-                        'student_name': student.name,
+                        'student_name': user.name,  # Keep for backward compatibility
+                        'user_name': user.name,
+                        'user_type': user_type,
                         'seat_number': today_session.seat.pc_no if today_session.seat else None
                     })
                 else:
-                    # Student is starting e-library service - check for available seats
+                    # User is starting e-library service - check for available seats
                     available_seats = ElibrarySeat.objects.filter(status='Available')
                     if not available_seats.exists():
                         return JsonResponse({
@@ -194,15 +269,18 @@ def service_monitor_handler(request):
                     return JsonResponse({
                         'status': 'success', 
                         'action': 'Service Starting',
-                        'message': f'Please select a seat for {student.name}',
-                        'student_name': student.name,
-                        'student_id': student.id,
-                        'department': student.department.name if student.department else 'N/A',
+                        'message': f'Please select a seat for {user.name}',
+                        'student_name': user.name,  # Keep for backward compatibility
+                        'user_name': user.name,
+                        'user_type': user_type,
+                        'student_id': user.id,
+                        'user_id': user.id,
+                        'department': user.department.name if user.department else 'N/A',
                         'requires_seat_selection': True
                     })
                 
         except Exception as e:
-            logger.error(f"Error processing e-library service for student {student_id}: {str(e)}")
+            logger.error(f"Error processing e-library service for user {student_id}: {str(e)}")
             return JsonResponse({
                 'status': 'error',
                 'message': 'Internal server error'
@@ -216,47 +294,111 @@ def seat_selection_handler(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         
-        student_id = data.get('student_id')
+        student_id = data.get('student_id')  # This is actually the user database ID, not ID number
         seat_id = data.get('seat_id')
 
         if not student_id or not seat_id:
-            return JsonResponse({'message': 'Student ID and Seat ID required'}, status=400)
+            return JsonResponse({'message': 'User ID and Seat ID required'}, status=400)
 
         try:
             with transaction.atomic():
-                # Get the student
-                student = Student.objects.filter(id=student_id).first()
-                if not student:
-                    return JsonResponse({'message': 'Student not found'}, status=404)
+                # Get the user - first try Student, then Faculty
+                user = Student.objects.filter(id=student_id).first()
+                user_type = 'student'
+                
+                if not user:
+                    user = Faculty.objects.filter(id=student_id).first()
+                    user_type = 'faculty'
+                
+                if not user:
+                    return JsonResponse({'message': 'User not found'}, status=404)
 
                 # Get the seat
                 seat = ElibrarySeat.objects.filter(id=seat_id, status='Available').first()
                 if not seat:
                     return JsonResponse({'message': 'Seat not available'}, status=400)
 
-                # Create the ELibrarySession record
-                session = ELibrarySession.objects.create(
-                    student=student,
-                    seat=seat,
-                    status='Active'
-                )
+                # Create the ELibrarySession record with generic FK
+                session = create_elibrary_session(user, user_type, seat)
 
                 # Mark the seat as Reserved
                 seat.status = 'Reserved'
                 seat.save()
 
-                logger.info(f"Student {student.name} assigned to seat {seat.pc_no}")
+                logger.info(f"{user_type.title()} {user.name} assigned to seat {seat.pc_no}")
                 
                 return JsonResponse({
                     'status': 'success',
-                    'message': f'Seat {seat.pc_no} assigned to {student.name}',
+                    'message': f'Seat {seat.pc_no} assigned to {user.name}',
                     'seat_number': seat.pc_no,
-                    'student_name': student.name
+                    'student_name': user.name,  # Keep for backward compatibility
+                    'user_name': user.name,
+                    'user_type': user_type
                 })
 
         except Exception as e:
-            logger.error(f"Error assigning seat for student {student_id}: {str(e)}")
+            logger.error(f"Error assigning seat for user {student_id}: {str(e)}")
             return JsonResponse({'message': 'Internal server error'}, status=500)
+
+@csrf_exempt
+def submit_ticket_handler(request):
+    """Handle ticket submission from service monitor"""
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        
+        user_id_no = data.get('student_id')  # This comes from localStorage as ID number
+        title = data.get('title', '').strip()
+        description = data.get('description', '').strip()
+        issue_type = data.get('issue_type', 'other_issue')
+
+        if not user_id_no:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'User ID is required'
+            }, status=400)
+        
+        if not title or not description:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Title and description are required'
+            }, status=400)
+
+        try:
+            # Find the user (Student or Faculty) by ID number
+            user, user_type = get_user_by_id(user_id_no)
+            if not user:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'User not found'
+                }, status=404)
+            
+            # Create the ticket with generic foreign key
+            content_type = ContentType.objects.get_for_model(user.__class__)
+            ticket = Ticket.objects.create(
+                title=title,
+                description=description,
+                issue_type=issue_type,
+                content_type=content_type,
+                object_id=user.id,
+                status='open'
+            )
+            
+            logger.info(f"Ticket #{ticket.id} created by {user_type} {user.name} ({user.id_no})")
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': f'Ticket submitted successfully! Ticket ID: #{ticket.id}',
+                'ticket_id': ticket.id,
+                'user_name': user.name,
+                'user_type': user_type
+            })
+
+        except Exception as e:
+            logger.error(f"Error creating ticket for user {user_id_no}: {str(e)}")
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Failed to submit ticket. Please try again.'
+            }, status=500)
 
     return JsonResponse({'message': 'Method not allowed'}, status=405)
 

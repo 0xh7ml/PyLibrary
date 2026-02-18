@@ -214,9 +214,65 @@
                         </button>
                     </div>
                 </form>
+
+                <!-- Submit Ticket Button -->
+                <div class="mt-4 text-center">
+                    <button type="button" class="btn btn-outline-warning btn-lg" id="submitTicketBtn" data-bs-toggle="modal" data-bs-target="#submitTicketModal">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Report Issue
+                    </button>
+                </div>
             </div>
         </div>
     </main>
+
+    <!-- Submit Ticket Modal -->
+    <div class="modal fade" id="submitTicketModal" tabindex="-1" aria-labelledby="submitTicketModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="submitTicketModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Report Issue
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="ticketSubmissionForm">
+                        <div class="mb-3">
+                            <label for="ticketTitle" class="form-label">Issue Title *</label>
+                            <input type="text" class="form-control" id="ticketTitle" name="title" placeholder="Brief description of the issue" required maxlength="200">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="ticketIssueType" class="form-label">Issue Type *</label>
+                            <select class="form-select" id="ticketIssueType" name="issue_type" required>
+                                <option value="">-- Select Issue Type --</option>
+                                <option value="pc_issue">PC Issue</option>
+                                <option value="facility_issue">Facility Issue</option>
+                                <option value="other_issue">Other Issue</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="ticketDescription" class="form-label">Description *</label>
+                            <textarea class="form-control" id="ticketDescription" name="description" rows="4" placeholder="Detailed description of the issue" required maxlength="1000"></textarea>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Note:</strong> Your student/faculty ID will be automatically attached to this ticket. Please ensure you have scanned your ID for e-library access before submitting.
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" id="submitTicketFormBtn">
+                        <i class="fas fa-paper-plane me-2"></i>Submit Ticket
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Seat Selection Modal -->
     <div class="modal fade" id="seatSelectionModal" tabindex="-1" aria-labelledby="seatSelectionModalLabel" aria-hidden="true">
@@ -226,7 +282,7 @@
                     <h5 class="modal-title" id="seatSelectionModalLabel">
                         <i class="fas fa-desktop me-2"></i>Select Your Seat
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" tabindex="-1"></button>
                 </div>
                 <div class="modal-body">
                     <div class="text-center mb-3">
@@ -241,6 +297,9 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#submitTicketModal" data-bs-dismiss="modal">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Report Issue
+                    </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 </div>
             </div>
