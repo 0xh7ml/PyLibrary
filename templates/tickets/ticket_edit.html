@@ -13,36 +13,78 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-6 col-lg-6">
+    <div class="col-md-8 col-lg-7">
         <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Ticket #{{ ticket.id }} - {{ ticket.title }}</h3>
+            </div>
             <div class="card-body">
+                <!-- Ticket Info (read-only) -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Reported By</label>
+                        <input type="text" class="form-control" value="{{ ticket.creator_name }}" readonly style="background-color: #e9ecef;">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Reporter ID</label>
+                        <input type="text" class="form-control" value="{{ ticket.creator_id_no }}" readonly style="background-color: #e9ecef;">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Type</label>
+                        <input type="text" class="form-control" value="{{ ticket.creator_type }}" readonly style="background-color: #e9ecef;">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Created At</label>
+                        <input type="text" class="form-control" value="{{ ticket.created_at|date:'SHORT_DATETIME_FORMAT' }}" readonly style="background-color: #e9ecef;">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Last Updated</label>
+                        <input type="text" class="form-control" value="{{ ticket.updated_at|date:'SHORT_DATETIME_FORMAT' }}" readonly style="background-color: #e9ecef;">
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- Editable Fields -->
                 <form method="POST" action="{% url 'ticket_edit' ticket.id %}">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label for="issue_type" class="form-label">Issue Type</label>
-                        <select class="form-select" id="issue_type" name="issue_type" required>
-                            <option value="">Select Issue Type</option>
-                            <option value="pc_issue" {% if ticket.issue_type == "pc_issue" %}selected{% endif %}>PC Issue</option>
-                            <option value="facility_issue" {% if ticket.issue_type == "facility_issue" %}selected{% endif %}>Facility Issue</option>
-                            <option value="other_issue" {% if ticket.issue_type == "other_issue" %}selected{% endif %}>Other Issue</option>
-                        </select>
+                        <label for="title" class="form-label fw-bold">Title</label>
+                        <input type="text" class="form-control" id="title" name="title" value="{{ ticket.title }}" required maxlength="200">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="issue_type" class="form-label fw-bold">Issue Type</label>
+                            <select class="form-select" id="issue_type" name="issue_type" required>
+                                <option value="">Select Issue Type</option>
+                                <option value="pc_issue" {% if ticket.issue_type == "pc_issue" %}selected{% endif %}>PC Issue</option>
+                                <option value="facility_issue" {% if ticket.issue_type == "facility_issue" %}selected{% endif %}>Facility Issue</option>
+                                <option value="other_issue" {% if ticket.issue_type == "other_issue" %}selected{% endif %}>Other Issue</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="status" class="form-label fw-bold">Status</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="">Select Status</option>
+                                <option value="open" {% if ticket.status == "open" %}selected{% endif %}>Open</option>
+                                <option value="in_progress" {% if ticket.status == "in_progress" %}selected{% endif %}>In Progress</option>
+                                <option value="resolved" {% if ticket.status == "resolved" %}selected{% endif %}>Resolved</option>
+                                <option value="closed" {% if ticket.status == "closed" %}selected{% endif %}>Closed</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <label for="status" class="form-label">Status</label>
-                        <select class="form-select" id="status" name="status" required>
-                            <option value="">Select Status</option>
-                            <option value="open" {% if ticket.status == "open" %}selected{% endif %}>Open</option>
-                            <option value="in_progress" {% if ticket.status == "in_progress" %}selected{% endif %}>In Progress</option>
-                            <option value="resolved" {% if ticket.status == "resolved" %}selected{% endif %}>Resolved</option>
-                            <option value="closed" {% if ticket.status == "closed" %}selected{% endif %}>Closed</option>
-                        </select>
+                        <label for="description" class="form-label fw-bold">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" required>{{ ticket.description }}</textarea>
                     </div>
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3" required>{{ ticket.description }}</textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                    <a href="{% url 'ticket_list' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Update Ticket
+                    </button>
+                    <a href="{% url 'ticket_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Cancel
+                    </a>
                 </form>
             </div>
         </div>

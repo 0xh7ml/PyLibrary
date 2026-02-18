@@ -34,6 +34,7 @@ class ElibrarySeat(models.Model):
     
 class Student(models.Model):
     name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True, null=True, blank=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     id_no = models.CharField(max_length=50, unique=True)
 
@@ -47,6 +48,7 @@ class Student(models.Model):
 
 class Faculty(models.Model):
     name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True, null=True, blank=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     id_no = models.CharField(max_length=50, unique=True)
 
