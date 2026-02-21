@@ -126,3 +126,7 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('EMAIL_HOST_USER', default='noreply@example.com')
 ADMIN_EMAIL = config('ADMIN_EMAIL', default='admin@example.com')
+CSRF_ALLOWED_ORIGINS = [
+    'http://localhost:8000',
+    'https://*.itsaikat.com',
+]
