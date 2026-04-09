@@ -1,11 +1,13 @@
 from django.shortcuts import render
 from django.db.models import Count, Q
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta
 from Library.models import LibraryEntry, ELibrarySession, ElibrarySeat, Student
 from Tickets.models import Ticket
 
 # Create your views here.
+@login_required
 def home(request):
     # Get current datetime
     now = timezone.now()

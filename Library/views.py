@@ -1,11 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
 from .models import Department, ElibrarySeat
 from .forms import DepartmentForm, ElibrarySeatForm
 
 # Department CRUD Views
+@login_required
 def department_list(request):
     """List all departments with search and pagination"""
     search = request.GET.get('search', '')
@@ -30,6 +32,7 @@ def department_list(request):
     }
     return render(request, 'library/department_list.html', context)
 
+@login_required
 def department_create(request):
     """Create a new department"""
     if request.method == 'POST':
@@ -48,6 +51,7 @@ def department_create(request):
     }
     return render(request, 'library/department_form.html', context)
 
+@login_required
 def department_update(request, pk):
     """Update an existing department"""
     department = get_object_or_404(Department, pk=pk)
@@ -70,6 +74,7 @@ def department_update(request, pk):
     return render(request, 'library/department_form.html', context)
 
 # ELibrarySeat CRUD Views
+@login_required
 def elibrary_seat_list(request):
     """List all e-library seats with search and pagination"""
     search = request.GET.get('search', '')
@@ -100,6 +105,7 @@ def elibrary_seat_list(request):
     }
     return render(request, 'library/elibrary_seat_list.html', context)
 
+@login_required
 def elibrary_seat_create(request):
     """Create a new e-library seat"""
     if request.method == 'POST':
@@ -118,6 +124,7 @@ def elibrary_seat_create(request):
     }
     return render(request, 'library/elibrary_seat_form.html', context)
 
+@login_required
 def elibrary_seat_update(request, pk):
     """Update an existing e-library seat"""
     seat = get_object_or_404(ElibrarySeat, pk=pk)
