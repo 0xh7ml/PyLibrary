@@ -1,11 +1,13 @@
 from django.shortcuts import render
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from datetime import datetime, timedelta
 from Library.models import *
 
 # Create your views here.
+@login_required
 def elibrary_report_view(request):
     # Get filter parameters from request (POST or GET)
     if request.method == 'POST':
@@ -90,6 +92,7 @@ def elibrary_report_view(request):
     }
     return render(request, 'reports/elibrary_report.html', context)
 
+@login_required
 def library_report_view(request):
     # Get filter parameters from request (POST or GET)
     if request.method == 'POST':

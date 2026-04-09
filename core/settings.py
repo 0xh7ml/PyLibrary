@@ -130,3 +130,7 @@ CSRF_ALLOWED_ORIGINS = [
     'http://localhost:8000',
     'https://*.itsaikat.com',
 ]
+
+LOGIN_URL = '/admin/login/'
+LOGIN_REDIRECT_URL = '/admin/'
+LOGOUT_REDIRECT_URL = '/admin/login/'
