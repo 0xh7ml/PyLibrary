@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.contrib.contenttypes.models import ContentType
 from datetime import datetime, timedelta
 from Library.models import *
 
@@ -42,9 +43,22 @@ def elibrary_report_view(request):
             # Invalid date format, ignore filter
             pass
     
-    # Apply student ID filter
+    # Apply student ID filter (search across generic FK and legacy FK)
     if student_id:
+        student_ct = ContentType.objects.get_for_model(Student)
+        faculty_ct = ContentType.objects.get_for_model(Faculty)
+
+        matching_student_ids = Student.objects.filter(
+            Q(id_no__icontains=student_id) | Q(name__icontains=student_id)
+        ).values_list('id', flat=True)
+
+        matching_faculty_ids = Faculty.objects.filter(
+            Q(id_no__icontains=student_id) | Q(name__icontains=student_id)
+        ).values_list('id', flat=True)
+
         queryset = queryset.filter(
+            Q(content_type=student_ct, object_id__in=matching_student_ids) |
+            Q(content_type=faculty_ct, object_id__in=matching_faculty_ids) |
             Q(student__id_no__icontains=student_id) |
             Q(student__name__icontains=student_id)
         )
@@ -111,9 +125,22 @@ def library_report_view(request):
             # Invalid date format, ignore filter
             pass
     
-    # Apply student ID filter
+    # Apply student ID filter (search across generic FK and legacy FK)
     if student_id:
+        student_ct = ContentType.objects.get_for_model(Student)
+        faculty_ct = ContentType.objects.get_for_model(Faculty)
+
+        matching_student_ids = Student.objects.filter(
+            Q(id_no__icontains=student_id) | Q(name__icontains=student_id)
+        ).values_list('id', flat=True)
+
+        matching_faculty_ids = Faculty.objects.filter(
+            Q(id_no__icontains=student_id) | Q(name__icontains=student_id)
+        ).values_list('id', flat=True)
+
         queryset = queryset.filter(
+            Q(content_type=student_ct, object_id__in=matching_student_ids) |
+            Q(content_type=faculty_ct, object_id__in=matching_faculty_ids) |
             Q(student__id_no__icontains=student_id) |
             Q(student__name__icontains=student_id)
         )

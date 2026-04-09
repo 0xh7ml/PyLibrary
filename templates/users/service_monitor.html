@@ -217,7 +217,7 @@
 
                 <!-- Submit Ticket Button -->
                 <div class="mt-4 text-center">
-                    <button type="button" class="btn btn-outline-warning btn-lg" id="submitTicketBtn" data-bs-toggle="modal" data-bs-target="#submitTicketModal">
+                    <button type="button" class="btn btn-outline-warning btn-lg" id="submitTicketBtn">
                         <i class="fas fa-exclamation-triangle me-2"></i>
                         Report Issue
                     </button>
@@ -239,6 +239,15 @@
                 <div class="modal-body">
                     <form id="ticketSubmissionForm">
                         <div class="mb-3">
+                            <label for="ticketStudentId" class="form-label">Your ID *</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                <input type="text" class="form-control" id="ticketStudentId" name="student_id" placeholder="ID will be auto-filled" required autocomplete="off" readonly style="background-color: #e9ecef;">
+                            </div>
+                            <small class="text-muted">Your scanned ID will be auto-filled.</small>
+                        </div>
+
+                        <div class="mb-3">
                             <label for="ticketTitle" class="form-label">Issue Title *</label>
                             <input type="text" class="form-control" id="ticketTitle" name="title" placeholder="Brief description of the issue" required maxlength="200">
                         </div>
@@ -256,11 +265,6 @@
                         <div class="mb-3">
                             <label for="ticketDescription" class="form-label">Description *</label>
                             <textarea class="form-control" id="ticketDescription" name="description" rows="4" placeholder="Detailed description of the issue" required maxlength="1000"></textarea>
-                        </div>
-                        
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Note:</strong> Your student/faculty ID will be automatically attached to this ticket. Please ensure you have scanned your ID for e-library access before submitting.
                         </div>
                     </form>
                 </div>
@@ -297,7 +301,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#submitTicketModal" data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-outline-warning" id="seatModalReportIssueBtn">
                         <i class="fas fa-exclamation-triangle me-2"></i>Report Issue
                     </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

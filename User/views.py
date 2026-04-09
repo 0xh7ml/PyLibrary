@@ -7,6 +7,7 @@ from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 from Library.models import Student, Faculty, LibraryEntry, ELibrarySession, ElibrarySeat
 from Tickets.models import Ticket
+from Tickets.utils import send_ticket_created_email
 import json
 import logging
 
@@ -384,6 +385,9 @@ def submit_ticket_handler(request):
             )
             
             logger.info(f"Ticket #{ticket.id} created by {user_type} {user.name} ({user.id_no})")
+
+            # Send email notification to admin
+            send_ticket_created_email(ticket)
             
             return JsonResponse({
                 'status': 'success',

@@ -20,10 +20,14 @@
                     <thead class="table-dark text-center">
                         <tr>
                             <th>S/N</th>
+                            <th>Ticket ID</th>
+                            <th>Title</th>
                             <th>Issue Type</th>
                             <th>Description</th>
                             <th>Status</th>
-                            <th>Reported by</th>
+                            <th>Reported By</th>
+                            <th>Reporter ID</th>
+                            <th>Type</th>
                             <th>Reported At</th>
                             <th>Action</th>
                         </tr>
@@ -32,6 +36,8 @@
                         {% for item in data %}
                         <tr>
                             <td>{{ forloop.counter }}</td>
+                            <td><span class="badge badge-primary">#{{ item.id }}</span></td>
+                            <td>{{ item.title|truncatechars:30 }}</td>
                             <td>{{ item.get_issue_type_display }}</td>
                             <td>{{ item.description|truncatechars:20 }}</td>
                             <td>
@@ -47,13 +53,9 @@
                                     <span class="badge bg-light text-dark">{{ item.get_status_display }}</span>
                                 {% endif %}
                             </td>
-                            <td>
-                                {% if item.issued_by.id_no %}
-                                    {{ item.issued_by.id_no }} 
-                                {% else %} 
-                                    Admin 
-                                {% endif %}
-                            </td>
+                            <td>{{ item.creator_name }}</td>
+                            <td><span class="badge badge-info">{{ item.creator_id_no }}</span></td>
+                            <td>{{ item.creator_type }}</td>
                             <td>{{ item.created_at|date:"SHORT_DATETIME_FORMAT"|upper }}</td>
                             <td class="text-center">
                                 <div class="btn-group" role="group">
@@ -65,7 +67,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="8" class="text-center"><i class="fas fa-database"></i> No data available</td>
+                            <td colspan="11" class="text-center"><i class="fas fa-database"></i> No data available</td>
                         </tr>
                         {% endfor %}
                     </tbody>

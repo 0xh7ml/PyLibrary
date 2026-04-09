@@ -70,8 +70,9 @@
                     <thead class="table-dark text-center">
                         <tr>
                             <th>S/N</th>
-                            <th>Student Id</th>
+                            <th>User ID</th>
                             <th>Name</th>
+                            <th>Type</th>
                             <th>Dept</th>
                             <th>Pc/Seat No</th>
                             <th>Entry Time</th>
@@ -83,9 +84,10 @@
                         {% for item in data %}
                         <tr>
                             <td>{{ data.start_index|add:forloop.counter0 }}</td>
-                            <td><span class="badge badge-primary">{{ item.student.id_no }}</span></td>
-                            <td>{{ item.student.name }}</td>
-                            <td>{{ item.student.department.name }}</td>
+                            <td><span class="badge badge-primary">{{ item.user_id_no }}</span></td>
+                            <td>{{ item.user_name }}</td>
+                            <td>{{ item.user_type }}</td>
+                            <td>{{ item.student.department.name|default:"N/A" }}</td>
                             <td>{{ item.seat }}</td>
                             <td><small class="text-muted">{{ item.start_time|date:"SHORT_DATETIME_FORMAT"|upper }}</small></td>
                             <td><small class="text-muted">{{ item.end_time|date:"SHORT_DATETIME_FORMAT"|upper }}</small></td>
@@ -99,7 +101,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="8" class="text-center"><i class="fas fa-database"></i> No data available</td>
+                            <td colspan="9" class="text-center"><i class="fas fa-database"></i> No data available</td>
                         </tr>
                         {% endfor %}
                     </tbody>

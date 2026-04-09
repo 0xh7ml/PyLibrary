@@ -303,6 +303,14 @@ function showToast(message, type = 'info', duration = null) {
 // ============================================================================
 
 /**
+ * Check if any Bootstrap modal is currently open
+ * @returns {boolean}
+ */
+function isAnyModalOpen() {
+    return document.querySelectorAll('.modal.show').length > 0;
+}
+
+/**
  * Optimize input field for barcode scanner
  * @param {string} inputId - ID of the input element
  * @param {string} formId - ID of the form element
@@ -316,14 +324,15 @@ function optimizeForBarcode(inputId = 'studentId', formId = 'entryForm') {
     // Force focus and prevent losing focus
     input.focus();
     
-    // Re-focus when clicking anywhere
-    document.addEventListener('click', function() {
+    // Re-focus when clicking anywhere (skip if a modal is open)
+    document.addEventListener('click', function(e) {
+        if (isAnyModalOpen()) return;
         setTimeout(() => input.focus(), 100);
     });
     
-    // Re-focus on page visibility change
+    // Re-focus on page visibility change (skip if a modal is open)
     document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) {
+        if (!document.hidden && !isAnyModalOpen()) {
             setTimeout(() => input.focus(), 100);
         }
     });
@@ -367,16 +376,18 @@ function optimizeForBarcode(inputId = 'studentId', formId = 'entryForm') {
  * @param {string} inputId - ID of the input element
  */
 function maintainInputFocus(inputId = 'studentId') {
-    // Ensure input stays focused
+    // Ensure input stays focused (skip when a modal is open)
     setInterval(() => {
+        if (isAnyModalOpen()) return;
         const input = document.getElementById(inputId);
         if (input && document.activeElement !== input && document.hasFocus()) {
             input.focus();
         }
     }, 1000);
     
-    // Handle page focus
+    // Handle page focus (skip when a modal is open)
     window.addEventListener('focus', function() {
+        if (isAnyModalOpen()) return;
         setTimeout(() => {
             const input = document.getElementById(inputId);
             if (input) input.focus();
@@ -745,6 +756,39 @@ function initializeServiceMonitor() {
 // ============================================================================
 
 /**
+ * Open the Report Issue modal programmatically
+ * Handles modal transitions from seat selection modal if needed
+ */
+function openReportIssueModal() {
+    const submitTicketModal = document.getElementById('submitTicketModal');
+    const seatSelectionModal = document.getElementById('seatSelectionModal');
+    const ticketStudentIdInput = document.getElementById('ticketStudentId');
+
+    // Pre-fill student ID from localStorage if available
+    const storedId = localStorage.getItem('currentStudentId');
+    if (storedId && ticketStudentIdInput) {
+        ticketStudentIdInput.value = storedId;
+    }
+
+    // Check if seat selection modal is currently open
+    const seatModalInstance = seatSelectionModal ? bootstrap.Modal.getInstance(seatSelectionModal) : null;
+
+    if (seatModalInstance) {
+        // Hide seat selection modal first, then open ticket modal
+        seatSelectionModal.addEventListener('hidden.bs.modal', function openTicket() {
+            seatSelectionModal.removeEventListener('hidden.bs.modal', openTicket);
+            const ticketModal = new bootstrap.Modal(submitTicketModal);
+            ticketModal.show();
+        }, { once: true });
+        seatModalInstance.hide();
+    } else {
+        // Directly open ticket modal
+        const ticketModal = new bootstrap.Modal(submitTicketModal);
+        ticketModal.show();
+    }
+}
+
+/**
  * Initialize ticket submission functionality
  */
 function initializeTicketSubmission() {
@@ -752,27 +796,36 @@ function initializeTicketSubmission() {
     const submitTicketFormBtn = document.getElementById('submitTicketFormBtn');
     const ticketForm = document.getElementById('ticketSubmissionForm');
     
-    if (!submitTicketBtn || !submitTicketFormBtn || !ticketForm) {
+    if (!submitTicketFormBtn || !ticketForm) {
         console.log('Ticket submission elements not found');
         return;
     }
-    
-    // Handle ticket modal show - check if student ID is available
+
+    // Main page "Report Issue" button — open modal programmatically
+    if (submitTicketBtn) {
+        submitTicketBtn.addEventListener('click', function () {
+            openReportIssueModal();
+        });
+    }
+
+    // "Report Issue" button inside seat selection modal
+    const seatModalReportBtn = document.getElementById('seatModalReportIssueBtn');
+    if (seatModalReportBtn) {
+        seatModalReportBtn.addEventListener('click', function () {
+            openReportIssueModal();
+        });
+    }
+
+    // Focus on student ID input when ticket modal is shown
     const submitTicketModal = document.getElementById('submitTicketModal');
     if (submitTicketModal) {
-        submitTicketModal.addEventListener('show.bs.modal', function () {
-            const studentId = localStorage.getItem('currentStudentId');
-            if (!studentId) {
-                showMessage('Please scan your Student/Faculty ID first to access e-library services before reporting an issue.', 'warning');
-                return false;
-            }
-        });
-        
-        // Focus on title input when modal is fully shown (one time only)
         submitTicketModal.addEventListener('shown.bs.modal', function () {
-            const titleInput = document.getElementById('ticketTitle');
-            if (titleInput && !titleInput.value) {
-                titleInput.focus();
+            const idInput = document.getElementById('ticketStudentId');
+            if (idInput && !idInput.value) {
+                idInput.focus();
+            } else {
+                const titleInput = document.getElementById('ticketTitle');
+                if (titleInput && !titleInput.value) titleInput.focus();
             }
         });
     }
@@ -780,10 +833,14 @@ function initializeTicketSubmission() {
     // Handle ticket form submission
     submitTicketFormBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        
-        const studentId = localStorage.getItem('currentStudentId');
+
+        // Get student ID from the modal input field (or fallback to localStorage)
+        const ticketStudentIdInput = document.getElementById('ticketStudentId');
+        const studentId = (ticketStudentIdInput ? ticketStudentIdInput.value.trim() : '') || localStorage.getItem('currentStudentId');
+
         if (!studentId) {
-            showMessage('Please scan your Student/Faculty ID first.', 'error');
+            showMessage('Please enter your Student/Faculty ID.', 'error');
+            if (ticketStudentIdInput) ticketStudentIdInput.focus();
             return;
         }
         
@@ -836,7 +893,7 @@ function initializeTicketSubmission() {
                 
                 // Close modal
                 const modal = bootstrap.Modal.getInstance(submitTicketModal);
-                modal.hide();
+                if (modal) modal.hide();
             } else {
                 showMessage(response.data.message || 'Failed to submit ticket', 'error');
             }
