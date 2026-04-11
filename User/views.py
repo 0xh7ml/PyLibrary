@@ -5,11 +5,14 @@ from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
-from Library.models import Student, Faculty, LibraryEntry, ELibrarySession, ElibrarySeat
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+from Library.models import Student, Faculty, LibraryEntry, ELibrarySession, ElibrarySeat, Department
 from Tickets.models import Ticket
 from Tickets.utils import send_ticket_created_email
 import json
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -49,11 +52,25 @@ def create_elibrary_session(user, user_type, seat, library_entry=None):
 
 def entry_monitor(request):
     """Render the entry monitoring page"""
-    return render(request, 'users/entry_monitor.html')
+    departments = Department.objects.order_by('name')
+    return render(request, 'users/entry_monitor.html', {'departments': departments})
 
 def service_monitor(request):
     """Render the service monitoring page"""
     return render(request, 'users/service_monitor.html')
+
+
+def departments_list_handler(request):
+    """Return departments list for registration popup."""
+    if request.method != 'GET':
+        return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+    departments = Department.objects.order_by('name').values('id', 'name')
+    print(f'Departments fetched: {list(departments)}')  # Debugging statement
+    return JsonResponse({
+        'status': 'success',
+        'departments': list(departments)
+    })
 
 @csrf_exempt
 def main_library_handler(request):
@@ -146,6 +163,63 @@ def main_library_handler(request):
             }, status=500)
 
     return JsonResponse({'message': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+def entry_registration_handler(request):
+    """Register a new student from entry monitor popup when ID is not found."""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid request data'}, status=400)
+
+    student_id = str(data.get('student_id', '')).strip()
+    name = str(data.get('name', '')).strip()
+    email = str(data.get('email', '')).strip().lower()
+    department_id = data.get('department_id')
+
+    if not re.fullmatch(r'\d{8}', student_id):
+        return JsonResponse({'status': 'error', 'message': 'Invalid ID. Please provide an 8-digit ID.'}, status=400)
+
+    if not name:
+        return JsonResponse({'status': 'error', 'message': 'Name is required.'}, status=400)
+
+    if not email:
+        return JsonResponse({'status': 'error', 'message': 'Email is required.'}, status=400)
+
+    try:
+        validate_email(email)
+    except ValidationError:
+        return JsonResponse({'status': 'error', 'message': 'Please provide a valid email address.'}, status=400)
+
+    if not department_id:
+        return JsonResponse({'status': 'error', 'message': 'Department is required.'}, status=400)
+
+    if Student.objects.filter(id_no=student_id).exists() or Faculty.objects.filter(id_no=student_id).exists():
+        return JsonResponse({'status': 'error', 'message': 'This ID already exists.'}, status=400)
+
+    if Student.objects.filter(email=email).exists() or Faculty.objects.filter(email=email).exists():
+        return JsonResponse({'status': 'error', 'message': 'This email already exists.'}, status=400)
+
+    department = Department.objects.filter(id=department_id).first()
+    if not department:
+        return JsonResponse({'status': 'error', 'message': 'Selected department is invalid.'}, status=400)
+
+    student = Student.objects.create(
+        name=name,
+        email=email,
+        department=department,
+        id_no=student_id,
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'{student.name} has been registered successfully.',
+        'student_id': student.id_no,
+    })
 
 @csrf_exempt
 def service_monitor_handler(request):
