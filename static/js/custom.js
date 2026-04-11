@@ -405,45 +405,97 @@ function maintainInputFocus(inputId = 'studentId') {
 function initializeEntryMonitor() {
     optimizeForBarcode('studentId', 'entryForm');
     maintainInputFocus('studentId');
-    
-    // Handle form submission
-    document.getElementById('entryForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        console.log('Entry form submission intercepted');
-        
-        const submitBtn = document.querySelector('button[type="submit"]');
-        const studentIdInput = document.getElementById('studentId');
-        const studentId = studentIdInput.value.trim();
-        
-        if (!studentId) {
-            showMessage('Please enter a valid Student/Faculty ID', 'warning');
-            studentIdInput.focus();
-            return false;
+
+    const entryForm = document.getElementById('entryForm');
+    const submitBtn = document.querySelector('button[type="submit"]');
+    const studentIdInput = document.getElementById('studentId');
+
+    const registrationModalElement = document.getElementById('entryRegistrationModal');
+    const registrationForm = document.getElementById('entryRegistrationForm');
+    const registrationSubmitBtn = document.getElementById('entryRegistrationSubmitBtn');
+    const registrationStudentId = document.getElementById('registrationStudentId');
+    const registrationStudentIdDisplay = document.getElementById('registrationStudentIdDisplay');
+    const registrationName = document.getElementById('registrationName');
+    const registrationEmail = document.getElementById('registrationEmail');
+    const registrationDepartment = document.getElementById('registrationDepartment');
+    const registrationModal = registrationModalElement ? new bootstrap.Modal(registrationModalElement) : null;
+    let departmentsLoaded = false;
+
+    const eightDigitIdPattern = /^\d{8}$/;
+
+    function isValidEightDigitId(value) {
+        return eightDigitIdPattern.test(value);
+    }
+
+    function populateDepartmentOptions(departments) {
+        registrationDepartment.innerHTML = '<option value="">Select Department</option>';
+        departments.forEach(function(department) {
+            const option = document.createElement('option');
+            option.value = department.id;
+            option.textContent = department.name;
+            registrationDepartment.appendChild(option);
+        });
+    }
+
+    function fetchDepartmentsForRegistration(forceRefresh = false) {
+        if (!registrationDepartment) {
+            return Promise.resolve([]);
         }
-        
-        if (studentId.length < 6) {
-            showMessage('ID must be at least 6 characters long', 'warning');
-            studentIdInput.focus();
-            return false;
+
+        if (departmentsLoaded && !forceRefresh) {
+            return Promise.resolve([]);
         }
-        
-        // Show loading state
+
+        registrationDepartment.disabled = true;
+        registrationDepartment.innerHTML = '<option value="">Loading departments...</option>';
+
+        return axios.get('/api/departments/', { timeout: 10000 })
+            .then(function(response) {
+                if (response.data && response.data.status === 'success' && Array.isArray(response.data.departments)) {
+                    populateDepartmentOptions(response.data.departments);
+                    departmentsLoaded = true;
+                    return response.data.departments;
+                }
+
+                throw new Error('Invalid department response');
+            })
+            .catch(function() {
+                registrationDepartment.innerHTML = '<option value="">Could not load departments</option>';
+                showMessage('Unable to fetch departments. Please try again.', 'error');
+                throw new Error('Department fetch failed');
+            })
+            .finally(function() {
+                registrationDepartment.disabled = false;
+            });
+    }
+
+    function openRegistrationModal(scannedId) {
+        if (!registrationModal) {
+            showMessage('Registration form is not available right now.', 'error');
+            return;
+        }
+
+        registrationStudentId.value = scannedId;
+        registrationStudentIdDisplay.value = scannedId;
+        registrationForm.reset();
+        registrationStudentId.value = scannedId;
+        registrationStudentIdDisplay.value = scannedId;
+
+        fetchDepartmentsForRegistration()
+            .finally(function() {
+                registrationModal.show();
+            });
+    }
+
+    function processEntry(studentId) {
         const originalText = submitBtn.innerHTML;
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing Entry...';
-        
-        // Prepare request data
-        const requestData = {
+
+        axios.post('/api/entry-exit/', {
             student_id: studentId,
             service_type: 'library'
-        };
-        
-        console.log('Sending entry request with student ID:', studentId);
-        
-        // Submit using axios
-        axios.post('/api/entry-exit/', requestData, {
+        }, {
             headers: {
                 'X-CSRFToken': getCSRFToken(),
                 'Content-Type': 'application/json'
@@ -451,13 +503,10 @@ function initializeEntryMonitor() {
             timeout: 10000
         })
         .then(function(response) {
-            console.log('Entry response received:', response.data);
-            
             if (response.data.status === 'success') {
                 const action = response.data.action;
                 const message = response.data.message;
-                
-                // Show appropriate success message
+
                 if (action === 'Entered') {
                     showMessage(`✅ ${message}`, 'success');
                 } else if (action === 'Exited') {
@@ -465,33 +514,116 @@ function initializeEntryMonitor() {
                 } else {
                     showMessage(message, 'success');
                 }
+
+                studentIdInput.value = '';
+                studentIdInput.focus();
             } else {
                 showMessage(response.data.message || 'Unexpected response format', 'error');
+                studentIdInput.select();
             }
-            
-            // Clear form and reset
-            studentIdInput.value = '';
-            studentIdInput.focus();
         })
         .catch(function(error) {
-            console.error('Entry error:', error);
             let errorMessage = 'Error processing entry. Please try again.';
-            
+
             if (error.response && error.response.data && error.response.data.message) {
                 errorMessage = error.response.data.message;
             } else if (error.code === 'ECONNABORTED') {
                 errorMessage = 'Request timeout. Please try again.';
             }
-            
-            showMessage(errorMessage, 'error');
-            studentIdInput.select();
+
+            if (error.response && error.response.status === 404 && isValidEightDigitId(studentId)) {
+                openRegistrationModal(studentId);
+            } else {
+                showMessage(errorMessage, 'error');
+                studentIdInput.select();
+            }
         })
         .finally(function() {
-            // Reset button state
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
         });
+    }
+    
+    // Handle form submission
+    entryForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const studentId = studentIdInput.value.trim();
+
+        if (!studentId) {
+            showMessage('Please enter a valid 8-digit ID.', 'warning');
+            studentIdInput.focus();
+            return false;
+        }
+
+        if (!isValidEightDigitId(studentId)) {
+            showMessage('Invalid ID. ID must be exactly 8 digits.', 'warning');
+            studentIdInput.focus();
+            return false;
+        }
+
+        processEntry(studentId);
     });
+
+    if (registrationForm && registrationSubmitBtn) {
+        registrationForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const scannedId = registrationStudentId.value.trim();
+            const name = registrationName.value.trim();
+            const email = registrationEmail.value.trim();
+            const departmentId = registrationDepartment.value;
+
+            if (!isValidEightDigitId(scannedId)) {
+                showMessage('Invalid ID. Registration is allowed only for valid 8-digit IDs.', 'warning');
+                return;
+            }
+
+            if (!name || !email || !departmentId) {
+                showMessage('Please fill in name, email and department.', 'warning');
+                return;
+            }
+
+            const originalBtnText = registrationSubmitBtn.innerHTML;
+            registrationSubmitBtn.disabled = true;
+            registrationSubmitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Registering...';
+
+            axios.post('/api/entry-registration/', {
+                student_id: scannedId,
+                name: name,
+                email: email,
+                department_id: departmentId
+            }, {
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'Content-Type': 'application/json'
+                },
+                timeout: 10000
+            })
+            .then(function(response) {
+                if (response.data.status === 'success') {
+                    showMessage(response.data.message || 'Registration completed successfully.', 'success');
+                    registrationModal.hide();
+                    studentIdInput.value = scannedId;
+                    processEntry(scannedId);
+                } else {
+                    showMessage(response.data.message || 'Registration failed.', 'error');
+                }
+            })
+            .catch(function(error) {
+                let errorMessage = 'Registration failed. Please try again.';
+                if (error.response && error.response.data && error.response.data.message) {
+                    errorMessage = error.response.data.message;
+                }
+                showMessage(errorMessage, 'error');
+            })
+            .finally(function() {
+                registrationSubmitBtn.disabled = false;
+                registrationSubmitBtn.innerHTML = originalBtnText;
+            });
+        });
+    }
 }
 
 // ============================================================================
