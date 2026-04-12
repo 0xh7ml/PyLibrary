@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
@@ -14,12 +13,10 @@ def elibrary_report_view(request):
         daterange = request.POST.get('daterange', '')
         student_id = request.POST.get('student_id', '')
         year = request.POST.get('year', '')
-        page_number = request.POST.get('page', 1)  # Handle page from POST for pagination
     else:
         daterange = request.GET.get('daterange', '')
         student_id = request.GET.get('student_id', '')
         year = request.GET.get('year', '')
-        page_number = request.GET.get('page', 1)
     
     # Start with all ELibrarySession objects
     queryset = ELibrarySession.objects.select_related(
@@ -77,13 +74,9 @@ def elibrary_report_view(request):
     # Order by most recent first
     queryset = queryset.order_by('-start_time')
     
-    # Pagination - 10 items per page
-    paginator = Paginator(queryset, 10)
-    page_obj = paginator.get_page(page_number)
-    
-    # Context for template - pass the paginated queryset directly
+    # Context for template - return all filtered records (no fixed pagination limit)
     context = {
-        'data': page_obj,
+        'data': queryset,
         'filter_values': {
             'daterange': daterange,
             'student_id': student_id,
@@ -99,12 +92,10 @@ def library_report_view(request):
         daterange = request.POST.get('daterange', '')
         student_id = request.POST.get('student_id', '')
         year = request.POST.get('year', '')
-        page_number = request.POST.get('page', 1)  # Handle page from POST for pagination
     else:
         daterange = request.GET.get('daterange', '')
         student_id = request.GET.get('student_id', '')
         year = request.GET.get('year', '')
-        page_number = request.GET.get('page', 1)
     
     # Start with all LibraryEntry objects
     queryset = LibraryEntry.objects.select_related(
@@ -160,13 +151,9 @@ def library_report_view(request):
     # Order by most recent first
     queryset = queryset.order_by('-entry_time')
     
-    # Pagination - 10 items per page
-    paginator = Paginator(queryset, 10)
-    page_obj = paginator.get_page(page_number)
-    
-    # Context for template - pass the paginated queryset directly
+    # Context for template - return all filtered records (no fixed pagination limit)
     context = {
-        'data': page_obj,
+        'data': queryset,
         'filter_values': {
             'daterange': daterange,
             'student_id': student_id,

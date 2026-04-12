@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Students{% endblock %}
+
+{% block content_header %}Student Management{% endblock content_header %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+<li class="breadcrumb-item active">Students</li>
+{% endblock breadcrumb %}
+
+{% block content %}
+<div class="col-12">
+    <div class="card">
+        <div class="card-body">
+            <form method="GET">
+                <div class="row g-2 align-items-center">
+                    <div class="col-auto">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search text-primary"></i></span>
+                            <input type="text" name="search" class="form-control"
+                                   placeholder="Search by name, ID, or email..." value="{{ search }}" style="min-width: 220px;">
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-building text-info"></i></span>
+                            <select class="form-select" name="department" style="min-width: 180px;">
+                                <option value="">-- All Departments --</option>
+                                {% for department in departments %}
+                                <option value="{{ department.id }}" {% if department_filter == department.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ department.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user-lock text-warning"></i></span>
+                            <select class="form-select" name="blocked" style="min-width: 160px;">
+                                <option value="">-- All Status --</option>
+                                <option value="false" {% if blocked_filter == 'false' %}selected{% endif %}>Active</option>
+                                <option value="true" {% if blocked_filter == 'true' %}selected{% endif %}>Blocked</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="btn-group" role="group">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-search me-1"></i>Search
+                            </button>
+                            {% if search or department_filter or blocked_filter %}
+                            <a href="{% url 'library:student_list' %}" class="btn btn-info px-4">
+                                <i class="fas fa-undo me-1"></i>Reset
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-auto ms-auto">
+                        <a href="{% url 'library:student_create' %}" class="btn btn-success px-4">
+                            <i class="fas fa-plus me-1"></i>Add Student
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                {% if students %}
+                <table class="table table-bordered text-nowrap">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th>S/N</th>
+                            <th>Name</th>
+                            <th>ID</th>
+                            <th>Email</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td class="text-center">{{ students.start_index|add:forloop.counter0 }}</td>
+                            <td>{{ student.name }}</td>
+                            <td><strong class="text-primary">{{ student.id_no }}</strong></td>
+                            <td>{{ student.email|default:'-' }}</td>
+                            <td>{{ student.department.name }}</td>
+                            <td class="text-center">
+                                {% if student.is_blocked %}
+                                <span class="badge badge-danger">Blocked</span>
+                                {% else %}
+                                <span class="badge badge-success">Active</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'library:student_update' student.pk %}" class="btn btn-warning" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form method="post" action="{% url 'library:student_toggle_block' student.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn {% if student.is_blocked %}btn-success{% else %}btn-secondary{% endif %}"
+                                                title="{% if student.is_blocked %}Unblock{% else %}Block{% endif %}">
+                                            <i class="fas {% if student.is_blocked %}fa-unlock{% else %}fa-lock{% endif %}"></i>
+                                        </button>
+                                    </form>
+                                    <a href="{% url 'library:student_delete' student.pk %}" class="btn btn-danger" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center py-4">
+                    <div class="empty-state">
+                        <i class="fas fa-user-graduate fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Students Found</h5>
+                        {% if search or department_filter or blocked_filter %}
+                        <p class="text-muted">No results matching your filters.</p>
+                        {% else %}
+                        <p class="text-muted">Start by adding your first student.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% include "utils/pagination.html" with data=students %}
+    </div>
+</div>
+{% endblock content %}
