@@ -53,11 +53,24 @@ def create_elibrary_session(user, user_type, seat, library_entry=None):
 def entry_monitor(request):
     """Render the entry monitoring page"""
     departments = Department.objects.order_by('name')
-    return render(request, 'users/entry_monitor.html', {'departments': departments})
+    return render(
+        request,
+        'users/entry_monitor.html',
+        {
+            'departments': departments,
+            'footer_notice': 'You must log out before you exit the library. Otherwise, you may be blocked from entering again.',
+        },
+    )
 
 def service_monitor(request):
     """Render the service monitoring page"""
-    return render(request, 'users/service_monitor.html')
+    return render(
+        request,
+        'users/service_monitor.html',
+        {
+            'footer_notice': 'You must log out before you exit using the e-library PC. Otherwise, you may be blocked from using the library service again.',
+        },
+    )
 
 
 def departments_list_handler(request):

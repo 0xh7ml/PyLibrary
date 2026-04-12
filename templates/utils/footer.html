@@ -1,5 +1,10 @@
 <footer class="main-footer text-center">
-    <p class="love mb-0">
+    {% if footer_notice %}
+    <div class="alert alert-warning mb-0 py-1 small" role="alert">
+        {{ footer_notice }}
+    </div>
+    {% endif %}
+    <p class="love mb-0 mt-4">
         IUBAT_Library_Entry_Exit_System |
         <a href="#" onclick="openContributorsModal(); return false;">Contributors</a>
     </p>
