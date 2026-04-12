@@ -1,3 +1,53 @@
 <footer class="main-footer text-center">
-    <p class="love">{{ APP_NAME }} | Made with <i class="fa fa-heart text-danger"></i></p>
+    <p class="love mb-0">
+        IUBAT_Library_Entry_Exit_System |
+        <a href="#" onclick="openContributorsModal(); return false;">Contributors</a>
+    </p>
 </footer>
+
+{% include "components/contributors_modal.html" %}
+
+<script>
+    function openContributorsModal() {
+        var modalElement = document.getElementById('contributorsModal');
+        if (!modalElement) {
+            return;
+        }
+
+        if (window.bootstrap && window.bootstrap.Modal) {
+            window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
+            return;
+        }
+
+        if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+            window.jQuery(modalElement).modal('show');
+            return;
+        }
+
+        modalElement.style.display = 'block';
+        modalElement.classList.add('show');
+    }
+
+    function closeContributorsModal() {
+        var modalElement = document.getElementById('contributorsModal');
+        if (!modalElement) {
+            return;
+        }
+
+        if (window.bootstrap && window.bootstrap.Modal) {
+            var modalInstance = window.bootstrap.Modal.getInstance(modalElement);
+            if (modalInstance) {
+                modalInstance.hide();
+            }
+            return;
+        }
+
+        if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+            window.jQuery(modalElement).modal('hide');
+            return;
+        }
+
+        modalElement.style.display = 'none';
+        modalElement.classList.remove('show');
+    }
+</script>
