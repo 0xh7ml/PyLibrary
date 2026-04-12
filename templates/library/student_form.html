@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content_header %}{{ title }}{% endblock content_header %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+<li class="breadcrumb-item"><a href="{% url 'library:student_list' %}">Students</a></li>
+<li class="breadcrumb-item active">{{ action }}</li>
+{% endblock breadcrumb %}
+
+{% block content %}
+<div class="col-md-10">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ title }}</h3>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="card-body">
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}<div class="text-danger"><small>{{ form.name.errors|join:', ' }}</small></div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="{{ form.id_no.id_for_label }}">{{ form.id_no.label }}</label>
+                            {{ form.id_no }}
+                            {% if form.id_no.errors %}<div class="text-danger"><small>{{ form.id_no.errors|join:', ' }}</small></div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="text-danger"><small>{{ form.email.errors|join:', ' }}</small></div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="{{ form.department.id_for_label }}">{{ form.department.label }}</label>
+                            {{ form.department }}
+                            {% if form.department.errors %}<div class="text-danger"><small>{{ form.department.errors|join:', ' }}</small></div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <div class="form-check mt-2">
+                            {{ form.is_blocked }}
+                            <label class="form-check-label" for="{{ form.is_blocked.id_for_label }}">
+                                {{ form.is_blocked.label }}
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="form-group mb-0">
+                            <label for="{{ form.block_reason.id_for_label }}">{{ form.block_reason.label }}</label>
+                            {{ form.block_reason }}
+                            {% if form.block_reason.errors %}<div class="text-danger"><small>{{ form.block_reason.errors|join:', ' }}</small></div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary">{{ action }}</button>
+                <a href="{% url 'library:student_list' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}

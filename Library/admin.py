@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils import timezone
 from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget
@@ -32,7 +33,7 @@ class StudentAdmin(ImportExportModelAdmin):
     search_fields = ('name', 'id_no', 'email')
     list_filter = ('department', 'is_blocked')
     ordering = ('name',)
-    actions = ('unblock_selected_students',)
+    actions = ('block_selected_students', 'unblock_selected_students')
     fieldsets = (
         ('Student Info', {
             'fields': ('name', 'id_no', 'email', 'department')
@@ -42,6 +43,15 @@ class StudentAdmin(ImportExportModelAdmin):
         }),
     )
     readonly_fields = ('blocked_at',)
+
+    @admin.action(description='Block selected students')
+    def block_selected_students(self, request, queryset):
+        updated = queryset.update(
+            is_blocked=True,
+            blocked_at=timezone.now(),
+            block_reason='Blocked manually by admin.',
+        )
+        self.message_user(request, f'{updated} student(s) have been blocked.')
 
     @admin.action(description='Unblock selected students')
     def unblock_selected_students(self, request, queryset):
