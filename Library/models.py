@@ -37,6 +37,9 @@ class Student(models.Model):
     email = models.EmailField(unique=True, null=True, blank=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     id_no = models.CharField(max_length=50, unique=True)
+    is_blocked = models.BooleanField(default=False)
+    blocked_at = models.DateTimeField(null=True, blank=True)
+    block_reason = models.CharField(max_length=255, blank=True, default='')
 
     class Meta:
         verbose_name = "Student"
