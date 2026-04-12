@@ -315,11 +315,31 @@ function isAnyModalOpen() {
  * @param {string} inputId - ID of the input element
  * @param {string} formId - ID of the form element
  */
-function optimizeForBarcode(inputId = 'studentId', formId = 'entryForm') {
+function triggerFormSubmit(form) {
+    if (!form) {
+        return;
+    }
+
+    if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit();
+        return;
+    }
+
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+}
+
+function optimizeForBarcode(inputId = 'studentId', formId = 'entryForm', options = {}) {
     const input = document.getElementById(inputId);
     const form = document.getElementById(formId);
     
     if (!input || !form) return;
+
+    const config = {
+        autoSubmitLength: options.autoSubmitLength || 8,
+        maxScanGapMs: options.maxScanGapMs || 80,
+        maxScanWindowMs: options.maxScanWindowMs || 650,
+        submitCooldownMs: options.submitCooldownMs || 500,
+    };
     
     // Force focus and prevent losing focus
     input.focus();
@@ -337,36 +357,105 @@ function optimizeForBarcode(inputId = 'studentId', formId = 'entryForm') {
         }
     });
     
-    // Handle rapid input (typical of barcode scanners)
-    let inputBuffer = '';
-    let inputTimeout;
+    let lastInputAt = 0;
+    let burstStartAt = 0;
+    let burstCount = 0;
+    let autoSubmitTimer = null;
+    let lastAutoSubmitAt = 0;
+
+    if (!form.dataset.barcodeConsumedValue) {
+        form.dataset.barcodeConsumedValue = '';
+    }
+
+    function clearAutoSubmitTimer() {
+        if (autoSubmitTimer) {
+            clearTimeout(autoSubmitTimer);
+            autoSubmitTimer = null;
+        }
+    }
+
+    function isRapidBarcodeEntry(value) {
+        const trimmedValue = value.trim();
+        const now = performance.now();
+        const withinRapidGap = lastInputAt === 0 || (now - lastInputAt) <= config.maxScanGapMs;
+
+        if (!withinRapidGap) {
+            burstStartAt = now;
+            burstCount = 0;
+        } else if (burstCount === 0) {
+            burstStartAt = now;
+        }
+
+        burstCount += 1;
+        lastInputAt = now;
+
+        return trimmedValue.length >= config.autoSubmitLength &&
+            burstCount >= config.autoSubmitLength &&
+            (now - burstStartAt) <= config.maxScanWindowMs;
+    }
+
+    function submitIfAllowed() {
+        const now = performance.now();
+        const currentValue = input.value.trim();
+
+        if (!currentValue) {
+            return;
+        }
+
+        if (currentValue === form.dataset.barcodeConsumedValue) {
+            return;
+        }
+
+        if (form.dataset.submitting === '1') {
+            return;
+        }
+
+        if ((now - lastAutoSubmitAt) < config.submitCooldownMs) {
+            return;
+        }
+
+        lastAutoSubmitAt = now;
+        form.dataset.barcodeConsumedValue = currentValue;
+        burstCount = 0;
+        burstStartAt = 0;
+        triggerFormSubmit(form);
+    }
     
     input.addEventListener('input', function(e) {
-        clearTimeout(inputTimeout);
-        inputBuffer += e.data || '';
-        
-        // If input seems to be from a barcode scanner (rapid input)
-        if (e.inputType === 'insertText' && inputBuffer.length > 5) {
-            inputTimeout = setTimeout(() => {
-                // Auto-submit if input looks like a complete barcode
-                if (this.value.length >= 6) {
-                    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        if (this.value.trim() === '') {
+            form.dataset.barcodeConsumedValue = '';
+        }
+
+        if (isRapidBarcodeEntry(this.value)) {
+            clearAutoSubmitTimer();
+            autoSubmitTimer = setTimeout(() => {
+                if (this.value.trim().length >= config.autoSubmitLength) {
+                    submitIfAllowed();
                 }
-                inputBuffer = '';
-            }, 50);
+            }, 35);
         } else {
-            // Regular typing
-            inputTimeout = setTimeout(() => {
-                inputBuffer = '';
-            }, 500);
+            clearAutoSubmitTimer();
         }
     });
     
-    // Handle barcode scanner that sends Enter key
-    input.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && this.value.length >= 6) {
+    // Barcode scanners often send Enter after the scan; manual typing should not submit here.
+    input.addEventListener('keydown', function(e) {
+        const isEnterKey = e.key === 'Enter' || e.key === 'NumpadEnter' || e.keyCode === 13;
+
+        if (isEnterKey) {
             e.preventDefault();
-            form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+            clearAutoSubmitTimer();
+
+            const value = this.value.trim();
+            const rapidScan = value.length >= config.autoSubmitLength &&
+                burstCount >= config.autoSubmitLength &&
+                (performance.now() - burstStartAt) <= config.maxScanWindowMs;
+
+            if (rapidScan) {
+                submitIfAllowed();
+            } else {
+                this.focus();
+            }
         }
     });
 }
@@ -403,7 +492,7 @@ function maintainInputFocus(inputId = 'studentId') {
  * Initialize Entry Monitor
  */
 function initializeEntryMonitor() {
-    optimizeForBarcode('studentId', 'entryForm');
+    optimizeForBarcode('studentId', 'entryForm', { autoSubmitLength: 8 });
     maintainInputFocus('studentId');
 
     const entryForm = document.getElementById('entryForm');
@@ -539,6 +628,8 @@ function initializeEntryMonitor() {
             }
         })
         .finally(function() {
+            entryForm.dataset.submitting = '0';
+            entryForm.dataset.barcodeConsumedValue = '';
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
         });
@@ -548,6 +639,10 @@ function initializeEntryMonitor() {
     entryForm.addEventListener('submit', function(e) {
         e.preventDefault();
         e.stopPropagation();
+
+        if (entryForm.dataset.submitting === '1') {
+            return false;
+        }
 
         const studentId = studentIdInput.value.trim();
 
@@ -563,6 +658,7 @@ function initializeEntryMonitor() {
             return false;
         }
 
+        entryForm.dataset.submitting = '1';
         processEntry(studentId);
     });
 
@@ -766,16 +862,21 @@ function selectSeat(studentId, seatId, seatNumber) {
  * Initialize Service Monitor
  */
 function initializeServiceMonitor() {
-    optimizeForBarcode('studentId', 'serviceForm');
+    optimizeForBarcode('studentId', 'serviceForm', { autoSubmitLength: 8 });
     maintainInputFocus('studentId');
+    const serviceForm = document.getElementById('serviceForm');
     
     // Initialize ticket submission functionality
     initializeTicketSubmission();
     
     // Handle form submission
-    document.getElementById('serviceForm').addEventListener('submit', function(e) {
+    serviceForm.addEventListener('submit', function(e) {
         e.preventDefault();
         e.stopPropagation();
+
+        if (serviceForm.dataset.submitting === '1') {
+            return false;
+        }
         
         console.log('Service form submission intercepted');
         
@@ -795,9 +896,10 @@ function initializeServiceMonitor() {
             studentIdInput.focus();
             return false;
         }
-        
+
         // Store student ID in localStorage for ticket submission
         localStorage.setItem('currentStudentId', studentId);
+        serviceForm.dataset.submitting = '1';
         
         // Show loading state
         submitBtn.disabled = true;
@@ -876,6 +978,8 @@ function initializeServiceMonitor() {
             studentIdInput.select();
         })
         .finally(function() {
+            serviceForm.dataset.submitting = '0';
+            serviceForm.dataset.barcodeConsumedValue = '';
             // Reset button state
             submitBtn.disabled = false;
             btnText.innerHTML = 'Access Services / Exit';
