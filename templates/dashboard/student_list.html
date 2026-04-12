@@ -1,0 +1,579 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Management - {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">Student Management</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Students</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+            <!-- Statistics Cards -->
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <div class="info-box bg-info">
+                        <span class="info-box-icon"><i class="fas fa-users"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Total Students</span>
+                            <span class="info-box-number">{{ total_students }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="info-box bg-success">
+                        <span class="info-box-icon"><i class="fas fa-user-check"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Active Students</span>
+                            <span class="info-box-number">{{ unblocked_students }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="info-box bg-danger">
+                        <span class="info-box-icon"><i class="fas fa-user-slash"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Blocked Students</span>
+                            <span class="info-box-number">{{ blocked_students }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="info-box bg-warning">
+                        <span class="info-box-icon"><i class="fas fa-percent"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Block Rate</span>
+                            <span class="info-box-number">
+                                {% if total_students > 0 %}
+                                    {{ blocked_students|add:"0"|stringformat:"d" }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Card -->
+            <div class="card card-primary card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-filter"></i> Filter & Search
+                    </h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="form-inline" id="filter-form">
+                        <div class="form-group mr-3 mb-2">
+                            <label for="block_status" class="mr-2">Block Status:</label>
+                            <select class="form-control form-control-sm" id="block_status" name="block_status">
+                                <option value="">All</option>
+                                <option value="blocked" {% if current_block_status == 'blocked' %}selected{% endif %}>Blocked</option>
+                                <option value="unblocked" {% if current_block_status == 'unblocked' %}selected{% endif %}>Active</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mr-3 mb-2">
+                            <label for="student_id" class="mr-2">Student ID:</label>
+                            <input type="text" class="form-control form-control-sm" id="student_id" name="student_id" 
+                                   placeholder="Search by ID" value="{{ current_student_id }}">
+                        </div>
+
+                        <div class="form-group mr-3 mb-2">
+                            <label for="student_name" class="mr-2">Student Name:</label>
+                            <input type="text" class="form-control form-control-sm" id="student_name" name="student_name" 
+                                   placeholder="Search by Name" value="{{ current_student_name }}">
+                        </div>
+
+                        <div class="form-group mr-3 mb-2">
+                            <label for="department" class="mr-2">Department:</label>
+                            <select class="form-control form-control-sm" id="department" name="department">
+                                <option value="">All</option>
+                                {% for dept in departments %}
+                                    <option value="{{ dept.id }}" {% if current_department == dept.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ dept.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group mr-3 mb-2">
+                            <label for="sort_by" class="mr-2">Sort By:</label>
+                            <select class="form-control form-control-sm" id="sort_by" name="sort_by">
+                                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
+                                <option value="status" {% if sort_by == 'status' %}selected{% endif %}>Status</option>
+                                <option value="blocked_date" {% if sort_by == 'blocked_date' %}selected{% endif %}>Blocked Date</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-search"></i> Filter
+                        </button>
+                        <a href="{% url 'dashboard:student_list' %}" class="btn btn-secondary btn-sm ml-2">
+                            <i class="fas fa-redo"></i> Reset
+                        </a>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Students Table -->
+            <div class="card card-primary card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-list"></i> Students List
+                    </h3>
+                    <div class="card-tools">
+                        <span class="badge badge-light">{{ page_obj.paginator.count }} total</span>
+                    </div>
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table table-hover table-striped" id="studentTable">
+                        <thead class="bg-light">
+                            <tr>
+                                <th style="width: 5%;">#</th>
+                                <th style="width: 15%;">Student ID</th>
+                                <th style="width: 20%;">Name</th>
+                                <th style="width: 15%;">Email</th>
+                                <th style="width: 15%;">Department</th>
+                                <th style="width: 10%;">Status</th>
+                                <th style="width: 20%;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        <code>{{ student.id_no }}</code>
+                                    </td>
+                                    <td>{{ student.name }}</td>
+                                    <td>
+                                        {% if student.email %}
+                                            <a href="mailto:{{ student.email }}">{{ student.email }}</a>
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ student.department.name }}</td>
+                                    <td>
+                                        {% if student.is_blocked %}
+                                            <span class="badge badge-danger">
+                                                <i class="fas fa-ban"></i> Blocked
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-check"></i> Active
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if student.is_blocked %}
+                                            <button class="btn btn-sm btn-success unblock-btn" data-student-id="{{ student.id }}" 
+                                                    data-student-name="{{ student.name }}" title="Unblock Student">
+                                                <i class="fas fa-unlock-alt"></i> Unblock
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-sm btn-warning block-btn" data-student-id="{{ student.id }}" 
+                                                    data-student-name="{{ student.name }}" title="Block Student">
+                                                <i class="fas fa-ban"></i> Block
+                                            </button>
+                                        {% endif %}
+                                        <button class="btn btn-sm btn-info details-btn" data-toggle="modal" data-target="#detailsModal"
+                                                data-student-id="{{ student.id }}"
+                                                data-student-name="{{ student.name }}"
+                                                data-student-no="{{ student.id_no }}"
+                                                data-email="{{ student.email|default:'' }}"
+                                                data-department="{{ student.department.name }}"
+                                                data-is-blocked="{{ student.is_blocked|lower }}"
+                                                data-block-reason="{{ student.block_reason|default:'' }}"
+                                                data-blocked-at="{% if student.blocked_at %}{{ student.blocked_at|date:'Y-m-d H:i' }}{% endif %}">
+                                            <i class="fas fa-eye"></i> Details
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">
+                                        <i class="fas fa-inbox"></i> No students found matching your criteria.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                    <div class="card-footer">
+                        <nav>
+                            <ul class="pagination m-0">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if current_block_status %}&block_status={{ current_block_status }}{% endif %}{% if current_student_id %}&student_id={{ current_student_id }}{% endif %}{% if current_student_name %}&student_name={{ current_student_name }}{% endif %}{% if current_department %}&department={{ current_department }}{% endif %}">
+                                            First
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_block_status %}&block_status={{ current_block_status }}{% endif %}{% if current_student_id %}&student_id={{ current_student_id }}{% endif %}{% if current_student_name %}&student_name={{ current_student_name }}{% endif %}{% if current_department %}&department={{ current_department }}{% endif %}">
+                                            Previous
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                    </span>
+                                </li>
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_block_status %}&block_status={{ current_block_status }}{% endif %}{% if current_student_id %}&student_id={{ current_student_id }}{% endif %}{% if current_student_name %}&student_name={{ current_student_name }}{% endif %}{% if current_department %}&department={{ current_department }}{% endif %}">
+                                            Next
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if current_block_status %}&block_status={{ current_block_status }}{% endif %}{% if current_student_id %}&student_id={{ current_student_id }}{% endif %}{% if current_student_name %}&student_name={{ current_student_name }}{% endif %}{% if current_department %}&department={{ current_department }}{% endif %}">
+                                            Last
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Block Confirmation Modal -->
+<div class="modal fade" id="blockModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header alert-warning">
+                <h5 class="modal-title">
+                    <i class="fas fa-ban"></i> Block Student
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form id="blockForm" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="student_id" id="blockStudentId">
+                <input type="hidden" name="action" value="block">
+                
+                <div class="modal-body">
+                    <p>Are you sure you want to block <strong id="blockStudentName"></strong>?</p>
+                    <div class="form-group">
+                        <label for="block_reason">Block Reason (Optional):</label>
+                        <textarea class="form-control" id="block_reason" name="block_reason" rows="3" 
+                                  placeholder="Enter reason for blocking..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmBlockBtn">
+                        <i class="fas fa-ban"></i> Block Student
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Unblock Confirmation Modal -->
+<div class="modal fade" id="unblockModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header alert-success">
+                <h5 class="modal-title">
+                    <i class="fas fa-unlock-alt"></i> Unblock Student
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form id="unblockForm" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="student_id" id="unblockStudentId">
+                <input type="hidden" name="action" value="unblock">
+                
+                <div class="modal-body">
+                    <p>Are you sure you want to unblock <strong id="unblockStudentName"></strong>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="confirmUnblockBtn">
+                        <i class="fas fa-unlock-alt"></i> Unblock Student
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Student Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-circle"></i> Student Details
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Personal Information</h6>
+                        <dl class="row">
+                            <dt class="col-sm-4">Student ID:</dt>
+                            <dd class="col-sm-8"><code id="detailStudentId"></code></dd>
+                            
+                            <dt class="col-sm-4">Name:</dt>
+                            <dd class="col-sm-8" id="detailStudentName"></dd>
+                            
+                            <dt class="col-sm-4">Email:</dt>
+                            <dd class="col-sm-8" id="detailStudentEmail"></dd>
+                            
+                            <dt class="col-sm-4">Department:</dt>
+                            <dd class="col-sm-8" id="detailStudentDept"></dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Account Status</h6>
+                        <dl class="row">
+                            <dt class="col-sm-4">Status:</dt>
+                            <dd class="col-sm-8"><span id="detailStudentStatus"></span></dd>
+                            
+                            <dt class="col-sm-4">Blocked At:</dt>
+                            <dd class="col-sm-8" id="detailBlockedAt"></dd>
+                            
+                            <dt class="col-sm-4">Block Reason:</dt>
+                            <dd class="col-sm-8" id="detailBlockReason"></dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Setup CSRF token for axios
+const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                  document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+// Configure axios defaults
+if (csrftoken) {
+    axios.defaults.headers.common['X-CSRFToken'] = csrftoken;
+}
+
+// Block button click handler
+document.querySelectorAll('.block-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const studentId = this.dataset.studentId;
+        const studentName = this.dataset.studentName;
+        
+        document.getElementById('blockStudentId').value = studentId;
+        document.getElementById('blockStudentName').textContent = studentName;
+        document.getElementById('block_reason').value = '';
+        
+        $('#blockModal').modal('show');
+    });
+});
+
+// Unblock button click handler
+document.querySelectorAll('.unblock-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const studentId = this.dataset.studentId;
+        const studentName = this.dataset.studentName;
+        
+        document.getElementById('unblockStudentId').value = studentId;
+        document.getElementById('unblockStudentName').textContent = studentName;
+        
+        $('#unblockModal').modal('show');
+    });
+});
+
+// Confirm Block Button Handler with Axios
+document.getElementById('confirmBlockBtn').addEventListener('click', function() {
+    const studentId = document.getElementById('blockStudentId').value;
+    const blockReason = document.getElementById('block_reason').value;
+    
+    // Show loading state
+    this.disabled = true;
+    const originalText = this.innerHTML;
+    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    
+    axios.post('{% url "dashboard:student_list" %}', {
+        action: 'block',
+        student_id: studentId,
+        block_reason: blockReason
+    }, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(function(response) {
+        if (response.data.status === 'success') {
+            // Show success message with SweetAlert
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: response.data.message,
+                timer: 2000,
+                showConfirmButton: false
+            }).then(function() {
+                // Reload the page to update the student list
+                location.reload();
+            });
+            
+            // Close modal
+            $('#blockModal').modal('hide');
+        }
+    })
+    .catch(function(error) {
+        const errorMsg = error.response?.data?.message || 'An error occurred while blocking the student.';
+        
+        // Show error message with SweetAlert
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: errorMsg
+        });
+    })
+    .finally(function() {
+        // Reset button state
+        document.getElementById('confirmBlockBtn').disabled = false;
+        document.getElementById('confirmBlockBtn').innerHTML = originalText;
+    });
+});
+
+// Confirm Unblock Button Handler with Axios
+document.getElementById('confirmUnblockBtn').addEventListener('click', function() {
+    const studentId = document.getElementById('unblockStudentId').value;
+    
+    // Show loading state
+    this.disabled = true;
+    const originalText = this.innerHTML;
+    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    
+    axios.post('{% url "dashboard:student_list" %}', {
+        action: 'unblock',
+        student_id: studentId
+    }, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(function(response) {
+        if (response.data.status === 'success') {
+            // Show success message with SweetAlert
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: response.data.message,
+                timer: 2000,
+                showConfirmButton: false
+            }).then(function() {
+                // Reload the page to update the student list
+                location.reload();
+            });
+            
+            // Close modal
+            $('#unblockModal').modal('hide');
+        }
+    })
+    .catch(function(error) {
+        const errorMsg = error.response?.data?.message || 'An error occurred while unblocking the student.';
+        
+        // Show error message with SweetAlert
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: errorMsg
+        });
+    })
+    .finally(function() {
+        // Reset button state
+        document.getElementById('confirmUnblockBtn').disabled = false;
+        document.getElementById('confirmUnblockBtn').innerHTML = originalText;
+    });
+});
+
+// Details button click handler
+document.querySelectorAll('.details-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const id = this.dataset.studentId;
+        const name = this.dataset.studentName;
+        const studentId = this.dataset.studentNo;
+        const email = this.dataset.email;
+        const dept = this.dataset.department;
+        const isBlocked = this.dataset.isBlocked === 'true';
+        const blockReason = this.dataset.blockReason;
+        const blockedAt = this.dataset.blockedAt;
+        
+        showStudentDetails(id, name, studentId, email, dept, isBlocked, blockReason, blockedAt);
+    });
+});
+
+// Show student details
+function showStudentDetails(id, name, studentId, email, dept, isBlocked, blockReason, blockedAt) {
+    document.getElementById('detailStudentId').textContent = studentId;
+    document.getElementById('detailStudentName').textContent = name;
+    document.getElementById('detailStudentEmail').textContent = email || 'N/A';
+    document.getElementById('detailStudentDept').textContent = dept;
+    
+    if (isBlocked) {
+        document.getElementById('detailStudentStatus').innerHTML = '<span class="badge badge-danger"><i class="fas fa-ban"></i> Blocked</span>';
+        document.getElementById('detailBlockedAt').textContent = blockedAt || 'N/A';
+        document.getElementById('detailBlockReason').textContent = blockReason || 'No reason provided';
+    } else {
+        document.getElementById('detailStudentStatus').innerHTML = '<span class="badge badge-success"><i class="fas fa-check"></i> Active</span>';
+        document.getElementById('detailBlockedAt').textContent = 'N/A';
+        document.getElementById('detailBlockReason').textContent = 'N/A';
+    }
+}
+</script>
+{% endblock %}
