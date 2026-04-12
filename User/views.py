@@ -144,6 +144,31 @@ def main_library_handler(request):
                     ).first()
                 
                 if today_entry:
+                    # User must end active e-library session before exiting main library
+                    today_session = ELibrarySession.objects.filter(
+                        content_type=content_type,
+                        object_id=user.id,
+                        start_time__date=today,
+                        status='Active',
+                        end_time__isnull=True
+                    ).first()
+
+                    # Backward compatibility for legacy student FK records
+                    if not today_session and user_type == 'student':
+                        today_session = ELibrarySession.objects.filter(
+                            student=user,
+                            start_time__date=today,
+                            status='Active',
+                            end_time__isnull=True
+                        ).first()
+
+                    if today_session:
+                        return JsonResponse({
+                            'status': 'error',
+                            'message': 'Please exit from Service Monitor first before exiting the main library.',
+                            'requires_service_exit': True
+                        }, status=400)
+
                     # User is already inside - mark as exit
                     today_entry.mark_exit()
                     action = 'Exited'
