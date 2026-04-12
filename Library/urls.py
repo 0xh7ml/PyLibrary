@@ -13,4 +13,11 @@ urlpatterns = [
     path('seats/', views.elibrary_seat_list, name='elibrary_seat_list'),
     path('seats/create/', views.elibrary_seat_create, name='elibrary_seat_create'),
     path('seats/<int:pk>/edit/', views.elibrary_seat_update, name='elibrary_seat_update'),
+
+    # Student URLs
+    path('students/', views.student_list, name='student_list'),
+    path('students/create/', views.student_create, name='student_create'),
+    path('students/<int:pk>/edit/', views.student_update, name='student_update'),
+    path('students/<int:pk>/delete/', views.student_delete, name='student_delete'),
+    path('students/<int:pk>/toggle-block/', views.student_toggle_block, name='student_toggle_block'),
 ]

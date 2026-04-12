@@ -83,7 +83,7 @@
                     <tbody class="text-center">
                         {% for item in data %}
                         <tr>
-                            <td>{{ data.start_index|add:forloop.counter0 }}</td>
+                            <td>{{ forloop.counter }}</td>
                             <td><span class="badge badge-primary">{{ item.user_id_no }}</span></td>
                             <td>{{ item.user_name }}</td>
                             <td>{{ item.user_type }}</td>
@@ -108,8 +108,11 @@
                 </table>
             </div>    
         </div>
-        <!-- Pagination -->
-        {% include "utils/pagination.html" with data=data %}
+        <div class="card-footer text-end">
+            <button type="button" class="btn btn-secondary" id="printELibraryReport">
+                <i class="fas fa-print me-1"></i>Print Report
+            </button>
+        </div>
     </div>
 </div>
 {% endblock content %}
@@ -304,6 +307,11 @@ $(document).ready(function() {
     
     // Update filter summary on page load
     updateFilterSummary();
+
+    // Print full report
+    $('#printELibraryReport').on('click', function() {
+        window.print();
+    });
 });
 </script>
 {% endblock customJs %}
