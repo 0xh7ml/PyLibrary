@@ -127,37 +127,40 @@
                 min-width: 280px;
             }
         }
+
+        /* Entry monitor specific toast placement and size */
+        #toastContainer.entry-monitor-toast {
+            top: 1rem !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%);
+            padding: 0 !important;
+        }
+
+        #toastContainer.entry-monitor-toast .toast {
+            min-width: 460px;
+            border-radius: 1rem;
+        }
+
+        #toastContainer.entry-monitor-toast .toast-body {
+            font-size: 1.1rem;
+            padding: 1rem 1.25rem;
+        }
+
+        @media (max-width: 576px) {
+            #toastContainer.entry-monitor-toast {
+                width: calc(100vw - 1.5rem);
+                left: 0.75rem !important;
+                transform: none;
+            }
+
+            #toastContainer.entry-monitor-toast .toast {
+                min-width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Bootstrap Dark Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-book-open-reader me-2"></i>
-                IUBAT Library
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="{% url 'entry_monitor' %}">Entry Monitor</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'service_monitor' %}">Service Monitor</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/">Admin</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
     <main class="main-content">
         <div class="card entry-card">
             <div class="card-body p-5 text-center">
@@ -244,6 +247,8 @@
             </div>
         </div>
     </div>
+
+    {% include "utils/footer.html" %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="{% static 'js/axios.min.js' %}"></script>
