@@ -4,9 +4,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.db import transaction
+from django.db import connection
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from zoneinfo import ZoneInfo
 from Library.models import Student, Faculty, LibraryEntry, ELibrarySession, ElibrarySeat, Department
 from Tickets.models import Ticket
 from Tickets.utils import send_ticket_created_email
@@ -15,6 +17,102 @@ import logging
 import re
 
 logger = logging.getLogger(__name__)
+BANGLADESH_TZ = ZoneInfo('Asia/Dhaka')
+_STUDENT_BLOCK_COLUMNS_READY = None
+
+
+def student_block_columns_ready():
+    """Return True when migration-added student block columns exist in DB."""
+    global _STUDENT_BLOCK_COLUMNS_READY
+    if _STUDENT_BLOCK_COLUMNS_READY is True:
+        return _STUDENT_BLOCK_COLUMNS_READY
+
+    try:
+        with connection.cursor() as cursor:
+            table_description = connection.introspection.get_table_description(cursor, Student._meta.db_table)
+        column_names = {col.name for col in table_description}
+        _STUDENT_BLOCK_COLUMNS_READY = {'is_blocked', 'blocked_at', 'block_reason'}.issubset(column_names)
+    except Exception:
+        _STUDENT_BLOCK_COLUMNS_READY = False
+
+    return _STUDENT_BLOCK_COLUMNS_READY
+
+
+def _is_before_today_in_bd(dt, bd_today):
+    if not dt:
+        return False
+    return timezone.localtime(dt, BANGLADESH_TZ).date() < bd_today
+
+
+def enforce_midnight_session_policy():
+    """Block students with previous-day active sessions and free reserved seats for the new day."""
+    if not student_block_columns_ready():
+        return
+
+    now = timezone.now()
+    bd_today = timezone.localtime(now, BANGLADESH_TZ).date()
+
+    students_to_block = set()
+
+    active_entries = LibraryEntry.objects.select_related('content_type', 'student').filter(
+        status='Entered',
+        exit_time__isnull=True,
+    )
+    for entry in active_entries:
+        if not _is_before_today_in_bd(entry.entry_time, bd_today):
+            continue
+
+        if entry.student_id:
+            students_to_block.add(entry.student_id)
+        elif entry.content_type and entry.content_type.model == 'student' and entry.object_id:
+            students_to_block.add(entry.object_id)
+
+        entry.exit_time = now
+        entry.status = 'Exited'
+        entry.save(update_fields=['exit_time', 'status'])
+
+    active_sessions = ELibrarySession.objects.select_related('content_type', 'student', 'seat').filter(
+        status='Active',
+        end_time__isnull=True,
+    )
+    for session in active_sessions:
+        if not _is_before_today_in_bd(session.start_time, bd_today):
+            continue
+
+        if session.student_id:
+            students_to_block.add(session.student_id)
+        elif session.content_type and session.content_type.model == 'student' and session.object_id:
+            students_to_block.add(session.object_id)
+
+        session.end_time = now
+        session.status = 'Exited'
+        session.save(update_fields=['end_time', 'status'])
+
+        if session.seat_id:
+            ElibrarySeat.objects.filter(id=session.seat_id).update(status='Available')
+
+    # Safety reset: any reserved seat not tied to an active session should be available for the new day.
+    active_seat_ids = ELibrarySession.objects.filter(
+        status='Active',
+        end_time__isnull=True,
+    ).values_list('seat_id', flat=True)
+    ElibrarySeat.objects.filter(status='Reserved').exclude(id__in=active_seat_ids).update(status='Available')
+
+    if students_to_block:
+        Student.objects.filter(id__in=students_to_block).update(
+            is_blocked=True,
+            blocked_at=now,
+            block_reason='Auto-blocked: did not exit before 12:00 AM (Bangladesh time).',
+        )
+
+
+def blocked_student_response(user):
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Your account is blocked. Please contact admin to unblock your account.',
+        'is_blocked': True,
+        'student_name': user.name,
+    }, status=403)
 
 def get_user_by_id(user_id):
     """Get user (Student or Faculty) by ID number"""
@@ -89,6 +187,7 @@ def departments_list_handler(request):
 def main_library_handler(request):
     """Handle library entry/exit for Entry Monitor"""
     if request.method == 'POST':
+        enforce_midnight_session_policy()
         data = json.loads(request.body)
         
         student_id = data.get('student_id')
@@ -110,6 +209,9 @@ def main_library_handler(request):
                     'status': 'error',
                     'message': 'Student/Faculty not found. Please check the ID and try again.'
                 }, status=404)
+
+            if user_type == 'student' and student_block_columns_ready() and user.is_blocked:
+                return blocked_student_response(user)
         
         except Exception as e:
             logger.error(f"Error finding user {student_id}: {str(e)}")
@@ -263,6 +365,7 @@ def entry_registration_handler(request):
 def service_monitor_handler(request):
     """Handle e-library service for Service Monitor"""
     if request.method == 'POST':
+        enforce_midnight_session_policy()
         data = json.loads(request.body)
         
         student_id = data.get('student_id')
@@ -284,6 +387,9 @@ def service_monitor_handler(request):
                     'status': 'error',
                     'message': 'Student/Faculty not found. Please check the ID and try again.'
                 }, status=404)
+
+            if user_type == 'student' and student_block_columns_ready() and user.is_blocked:
+                return blocked_student_response(user)
         
         except Exception as e:
             logger.error(f"Error finding user {student_id}: {str(e)}")
@@ -405,6 +511,7 @@ def service_monitor_handler(request):
 def seat_selection_handler(request):
     """Handle seat selection for e-library service"""
     if request.method == 'POST':
+        enforce_midnight_session_policy()
         data = json.loads(request.body)
         
         student_id = data.get('student_id')  # This is actually the user database ID, not ID number
@@ -425,6 +532,9 @@ def seat_selection_handler(request):
                 
                 if not user:
                     return JsonResponse({'message': 'User not found'}, status=404)
+
+                if user_type == 'student' and student_block_columns_ready() and user.is_blocked:
+                    return blocked_student_response(user)
 
                 # Get the seat
                 seat = ElibrarySeat.objects.filter(id=seat_id, status='Available').first()

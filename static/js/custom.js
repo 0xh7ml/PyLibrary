@@ -495,6 +495,10 @@ function initializeEntryMonitor() {
     optimizeForBarcode('studentId', 'entryForm', { autoSubmitLength: 8 });
     maintainInputFocus('studentId');
 
+    const entryToastContainer = document.getElementById('toastContainer') || createToastContainer();
+    entryToastContainer.classList.remove('end-0');
+    entryToastContainer.classList.add('entry-monitor-toast');
+
     const entryForm = document.getElementById('entryForm');
     const submitBtn = document.querySelector('button[type="submit"]');
     const studentIdInput = document.getElementById('studentId');
@@ -597,11 +601,11 @@ function initializeEntryMonitor() {
                 const message = response.data.message;
 
                 if (action === 'Entered') {
-                    showMessage(`✅ ${message}`, 'success');
+                    showMessage(`✅ ${message}`, 'success', 2000);
                 } else if (action === 'Exited') {
-                    showMessage(`🚪 ${message}`, 'info');
+                    showMessage(`🚪 ${message}`, 'info', 2000);
                 } else {
-                    showMessage(message, 'success');
+                    showMessage(message, 'success', 2000);
                 }
 
                 studentIdInput.value = '';

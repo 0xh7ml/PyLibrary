@@ -20,18 +20,33 @@ class StudentResource(resources.ModelResource):
 
     class Meta:
         model = Student
-        fields = ('id', 'name', 'id_no', 'email', 'department')
-        export_order = ('id', 'name', 'id_no', 'email', 'department')
+        fields = ('id', 'name', 'id_no', 'email', 'department', 'is_blocked')
+        export_order = ('id', 'name', 'id_no', 'email', 'department', 'is_blocked')
         import_id_fields = ('id_no',)  # Use id_no as unique identifier for updates
 
 
 class StudentAdmin(ImportExportModelAdmin):
     """Student admin with import/export functionality"""
     resource_class = StudentResource
-    list_display = ('name', 'id_no', 'email', 'department')
+    list_display = ('name', 'id_no', 'email', 'department', 'is_blocked')
     search_fields = ('name', 'id_no', 'email')
-    list_filter = ('department',)
+    list_filter = ('department', 'is_blocked')
     ordering = ('name',)
+    actions = ('unblock_selected_students',)
+    fieldsets = (
+        ('Student Info', {
+            'fields': ('name', 'id_no', 'email', 'department')
+        }),
+        ('Account Control', {
+            'fields': ('is_blocked', 'blocked_at', 'block_reason')
+        }),
+    )
+    readonly_fields = ('blocked_at',)
+
+    @admin.action(description='Unblock selected students')
+    def unblock_selected_students(self, request, queryset):
+        updated = queryset.update(is_blocked=False, blocked_at=None, block_reason='')
+        self.message_user(request, f'{updated} student(s) have been unblocked.')
 
 
 # Department Admin
