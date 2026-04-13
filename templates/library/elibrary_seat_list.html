@@ -10,6 +10,123 @@
 
 {% block content %}
 <div class="col-12">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-th me-2"></i>Library Visual Layout</h3>
+        </div>
+        <div class="card-body">
+            <style>
+                .library-visual-wrap { overflow-x: auto; }
+                .library-visual { min-width: 760px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+                .pair-block { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; padding: 0.8rem; }
+                .pair-title { font-size: 0.8rem; color: #6c757d; text-align: center; margin-top: 2rem; line-height: 1.2; font-weight: 700; }
+                .pair-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+                .pair-col { display: grid; grid-template-rows: repeat(6, 40px); gap: 0.45rem; }
+                .seat-node { border-radius: 8px; border: 2px solid transparent; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+                .seat-node i { font-size: 0.9rem; }
+                .seat-node.available { background: #37c57e; color: #fff; border-color: #2d8f57; }
+                .seat-node.reserved { background: #2081c4; color: #fff; border-color: #1a6ba3; }
+                .seat-node.maintenance { background: #ffa500; color: #fff; border-color: #e69500; }
+                .seat-node.empty { background: #eef1f4; color: #6c757d; border-color: #d4dbe1; border-style: dashed; }
+                .seat-node:hover { transform: translateY(-1px); }
+                .layout-legend { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; }
+                .layout-legend span { font-size: 0.85rem; }
+                .layout-dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 0.35rem; vertical-align: -1px; }
+            </style>
+            <div class="library-visual-wrap">
+                <div id="adminLibraryVisual" class="library-visual"></div>
+            </div>
+            <div class="layout-legend">
+                <span><i class="layout-dot" style="background:#37c57e;"></i>Available</span>
+                <span><i class="layout-dot" style="background:#2081c4;"></i>Reserved</span>
+                <span><i class="layout-dot" style="background:#ffa500;"></i>Maintenance</span>
+                <span><i class="layout-dot" style="background:#eef1f4;border:1px dashed #d4dbe1;"></i>Empty Slot (Click to Add)</span>
+            </div>
+            {{ all_seats_layout|json_script:"admin-seat-data" }}
+            <script>
+                (function () {
+                    var raw = JSON.parse(document.getElementById('admin-seat-data').textContent || '[]');
+                    var visual = document.getElementById('adminLibraryVisual');
+                    if (!visual) return;
+
+                    function extractNumber(pcNo) {
+                        var m = String(pcNo || '').match(/\d+/);
+                        return m ? parseInt(m[0], 10) : null;
+                    }
+
+                    function fmtPcNo(num) {
+                        return 'PC-' + String(num).padStart(3, '0');
+                    }
+
+                    var byNumber = {};
+                    raw.forEach(function (seat) {
+                        var n = extractNumber(seat.pc_no);
+                        if (n) byNumber[n] = seat;
+                    });
+
+                    var existingNumbers = Object.keys(byNumber).map(function (k) { return parseInt(k, 10); });
+                    var maxPcNumber = existingNumbers.length ? Math.max.apply(null, existingNumbers) : 48;
+                    var pairCount = Math.max(4, Math.ceil(maxPcNumber / 12));
+
+                    for (var pair = 1; pair <= pairCount; pair++) {
+                        var leftStart = (pair - 1) * 12 + 1;
+                        var rightStart = leftStart + 6;
+
+                        var block = document.createElement('div');
+                        block.className = 'pair-block';
+
+                        var cols = document.createElement('div');
+                        cols.className = 'pair-columns';
+
+                        var leftCol = document.createElement('div');
+                        leftCol.className = 'pair-col';
+                        for (var ln = leftStart + 5; ln >= leftStart; ln--) {
+                            leftCol.appendChild(buildNode(ln));
+                        }
+
+                        var rightCol = document.createElement('div');
+                        rightCol.className = 'pair-col';
+                        for (var rn = rightStart; rn <= rightStart + 5; rn++) {
+                            rightCol.appendChild(buildNode(rn));
+                        }
+
+                        cols.appendChild(leftCol);
+                        cols.appendChild(rightCol);
+                        block.appendChild(cols);
+
+                        var title = document.createElement('div');
+                        title.className = 'pair-title';
+                        title.textContent = 'Pair ' + pair;
+                        block.appendChild(title);
+
+                        visual.appendChild(block);
+                    }
+
+                    function buildNode(num) {
+                        var seat = byNumber[num];
+                        var node = document.createElement('a');
+                        node.className = 'seat-node';
+                        node.innerHTML = '<i class="fas fa-desktop"></i>';
+
+                        if (seat) {
+                            node.classList.add(String(seat.status || '').toLowerCase());
+                            node.href = '{% url "library:elibrary_seat_update" 0 %}'.replace('/0/edit/', '/' + seat.id + '/edit/');
+                            node.title = seat.pc_no + ' (' + seat.status + ')';
+                            node.textContent = seat.pc_no;
+                        } else {
+                            node.classList.add('empty');
+                            node.href = '{% url "library:elibrary_seat_create" %}?pc_no=' + encodeURIComponent(fmtPcNo(num));
+                            node.title = 'Add seat at ' + fmtPcNo(num);
+                            node.textContent = fmtPcNo(num);
+                        }
+
+                        return node;
+                    }
+                })();
+            </script>
+        </div>
+    </div>
+
     <!-- Filter Form -->
     <div class="card">
         <div class="card-body">

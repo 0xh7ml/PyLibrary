@@ -745,6 +745,7 @@ function showSeatSelectionModal(studentName, studentId) {
     })
     .then(function(response) {
         document.getElementById('seatLayout').innerHTML = response.data;
+        renderSeatLayoutAsLibraryVisual();
         
         // Remove any existing event listeners to prevent duplicates
         const existingHandler = document.querySelector('#seatLayout')?.seatSelectedHandler;
@@ -788,6 +789,146 @@ function showSeatSelectionModal(studentName, studentId) {
         }
         // Don't focus on any specific element, let user click naturally
     });
+}
+
+/**
+ * Convert plain seat grid to a visual paired-column library layout.
+ * Keeps existing seat selection behavior unchanged.
+ */
+function renderSeatLayoutAsLibraryVisual() {
+    const seatLayoutRoot = document.getElementById('seatLayout');
+    if (!seatLayoutRoot) return;
+
+    const oldGrid = seatLayoutRoot.querySelector('.seats-grid');
+    if (!oldGrid) return;
+
+    const originalSeats = Array.from(oldGrid.querySelectorAll('.seat-cell'));
+    if (!originalSeats.length) return;
+
+    const parsePcNumber = (value) => {
+        const matched = String(value || '').match(/\d+/);
+        return matched ? parseInt(matched[0], 10) : null;
+    };
+
+    const seatMap = new Map();
+    originalSeats.forEach((seatNode) => {
+        const n = parsePcNumber(seatNode.getAttribute('data-seat-number'));
+        if (n !== null) {
+            seatMap.set(n, {
+                seatId: seatNode.getAttribute('data-seat-id'),
+                seatNumber: seatNode.getAttribute('data-seat-number'),
+                status: String(seatNode.getAttribute('data-status') || '').toLowerCase()
+            });
+        }
+    });
+
+    if (!seatMap.size) return;
+
+    const styleId = 'service-monitor-library-visual-style';
+    if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.textContent = `
+            .library-visual-wrap { overflow-x: auto; }
+            .library-visual { min-width: 760px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+            .pair-block { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; padding: 0.8rem; }
+            .pair-title { font-size: 0.8rem; color: #6c757d; text-align: center; margin-top: 1.2rem; line-height: 1.2; font-weight: 700; }
+            .pair-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+            .pair-col { display: grid; grid-template-rows: repeat(6, 40px); gap: 0.45rem; }
+            .seat-node { border-radius: 8px; border: 2px solid transparent; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+            .seat-node i { font-size: 0.9rem; }
+            .seat-node.available { background: #37c57e; color: #fff; border-color: #2d8f57; cursor: pointer; }
+            .seat-node.reserved { background: #2081c4; color: #fff; border-color: #1a6ba3; cursor: not-allowed; }
+            .seat-node.maintenance { background: #ffa500; color: #fff; border-color: #e69500; cursor: not-allowed; }
+            .seat-node.empty { background: #eef1f4; color: #6c757d; border-color: #d4dbe1; border-style: dashed; }
+            .seat-node:hover.available { transform: translateY(-1px); }
+            .layout-legend { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; }
+            .layout-legend span { font-size: 0.85rem; }
+            .layout-dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 0.35rem; vertical-align: -1px; }
+        `;
+        document.head.appendChild(style);
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'library-visual-wrap';
+
+    const visual = document.createElement('div');
+    visual.className = 'library-visual';
+
+    const existingNumbers = Array.from(seatMap.keys());
+    const maxPcNumber = existingNumbers.length ? Math.max(...existingNumbers) : 48;
+    const pairCount = Math.max(4, Math.ceil(maxPcNumber / 12));
+
+    for (let pair = 1; pair <= pairCount; pair++) {
+        const leftStart = (pair - 1) * 12 + 1;
+        const rightStart = leftStart + 6;
+
+        const pairBlock = document.createElement('div');
+        pairBlock.className = 'pair-block';
+
+        const cols = document.createElement('div');
+        cols.className = 'pair-columns';
+
+        const leftCol = document.createElement('div');
+        leftCol.className = 'pair-col';
+        for (let n = leftStart + 5; n >= leftStart; n--) {
+            leftCol.appendChild(buildNode(n));
+        }
+
+        const rightCol = document.createElement('div');
+        rightCol.className = 'pair-col';
+        for (let n = rightStart; n <= rightStart + 5; n++) {
+            rightCol.appendChild(buildNode(n));
+        }
+
+        cols.appendChild(leftCol);
+        cols.appendChild(rightCol);
+        pairBlock.appendChild(cols);
+
+        const title = document.createElement('div');
+        title.className = 'pair-title';
+        title.textContent = `Pair ${pair}`;
+        pairBlock.appendChild(title);
+
+        visual.appendChild(pairBlock);
+    }
+
+    wrap.appendChild(visual);
+
+    const legend = document.createElement('div');
+    legend.className = 'layout-legend';
+    legend.innerHTML = `
+        <span><i class="layout-dot" style="background:#37c57e;"></i>Available</span>
+        <span><i class="layout-dot" style="background:#2081c4;"></i>Reserved</span>
+        <span><i class="layout-dot" style="background:#ffa500;"></i>Maintenance</span>
+    `;
+    wrap.appendChild(legend);
+
+    oldGrid.replaceWith(wrap);
+
+    function buildNode(n) {
+        const seat = seatMap.get(n);
+        const node = document.createElement('div');
+        node.className = 'seat-node seat-cell';
+
+        if (!seat) {
+            node.classList.add('empty');
+            return node;
+        }
+
+        node.classList.add(seat.status);
+        node.setAttribute('data-seat-id', seat.seatId);
+        node.setAttribute('data-seat-number', seat.seatNumber);
+        node.setAttribute('data-status', seat.status);
+        node.textContent = seat.seatNumber;
+
+        if (seat.status === 'available') {
+            node.setAttribute('onclick', 'selectSeatElement(this)');
+        }
+
+        return node;
+    }
+
 }
 
 /**

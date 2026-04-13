@@ -102,7 +102,8 @@ def elibrary_seat_list(request):
     context = {
         'elibrary_seats': page_obj,
         'search': search,
-        'status_filter': status_filter
+        'status_filter': status_filter,
+        'all_seats_layout': list(ElibrarySeat.objects.order_by('pc_no').values('id', 'pc_no', 'status')),
     }
     return render(request, 'library/elibrary_seat_list.html', context)
 
@@ -116,7 +117,8 @@ def elibrary_seat_create(request):
             messages.success(request, 'E-Library seat created successfully!')
             return redirect('library:elibrary_seat_list')
     else:
-        form = ElibrarySeatForm()
+        initial_pc_no = request.GET.get('pc_no', '').strip()
+        form = ElibrarySeatForm(initial={'pc_no': initial_pc_no} if initial_pc_no else None)
     
     context = {
         'form': form,
