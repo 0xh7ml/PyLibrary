@@ -20,4 +20,5 @@ urlpatterns = [
     path('students/<int:pk>/edit/', views.student_update, name='student_update'),
     path('students/<int:pk>/delete/', views.student_delete, name='student_delete'),
     path('students/<int:pk>/toggle-block/', views.student_toggle_block, name='student_toggle_block'),
+    path('students/unblock-all/', views.student_unblock_all, name='student_unblock_all'),
 ]

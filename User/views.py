@@ -91,13 +91,6 @@ def enforce_midnight_session_policy():
         if session.seat_id:
             ElibrarySeat.objects.filter(id=session.seat_id).update(status='Available')
 
-    # Safety reset: any reserved seat not tied to an active session should be available for the new day.
-    active_seat_ids = ELibrarySession.objects.filter(
-        status='Active',
-        end_time__isnull=True,
-    ).values_list('seat_id', flat=True)
-    ElibrarySeat.objects.filter(status='Reserved').exclude(id__in=active_seat_ids).update(status='Available')
-
     if students_to_block:
         Student.objects.filter(id__in=students_to_block).update(
             is_blocked=True,
