@@ -102,7 +102,8 @@ def elibrary_seat_list(request):
     context = {
         'elibrary_seats': page_obj,
         'search': search,
-        'status_filter': status_filter
+        'status_filter': status_filter,
+        'all_seats_layout': list(ElibrarySeat.objects.order_by('pc_no').values('id', 'pc_no', 'status')),
     }
     return render(request, 'library/elibrary_seat_list.html', context)
 
@@ -116,7 +117,8 @@ def elibrary_seat_create(request):
             messages.success(request, 'E-Library seat created successfully!')
             return redirect('library:elibrary_seat_list')
     else:
-        form = ElibrarySeatForm()
+        initial_pc_no = request.GET.get('pc_no', '').strip()
+        form = ElibrarySeatForm(initial={'pc_no': initial_pc_no} if initial_pc_no else None)
     
     context = {
         'form': form,
@@ -172,16 +174,26 @@ def student_list(request):
 
     students = students.order_by('name')
 
-    paginator = Paginator(students, 15)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    is_filtered = bool(search or department_filter or blocked_filter)
+    show_pagination = not is_filtered
+
+    if show_pagination:
+        paginator = Paginator(students, 15)
+        page_number = request.GET.get('page')
+        students_data = paginator.get_page(page_number)
+        serial_offset = students_data.start_index() - 1
+    else:
+        students_data = students
+        serial_offset = 0
 
     context = {
-        'students': page_obj,
+        'students': students_data,
         'search': search,
         'department_filter': department_filter,
         'blocked_filter': blocked_filter,
         'departments': Department.objects.order_by('name'),
+        'show_pagination': show_pagination,
+        'serial_offset': serial_offset,
     }
     return render(request, 'library/student_list.html', context)
 
@@ -265,4 +277,22 @@ def student_toggle_block(request, pk):
         messages.success(request, f'Student "{student.name}" has been unblocked.')
 
     student.save(update_fields=['is_blocked', 'blocked_at', 'block_reason'])
+    return redirect('library:student_list')
+
+
+@login_required
+@require_POST
+def student_unblock_all(request):
+    """Unblock all blocked students in one action."""
+    updated = Student.objects.filter(is_blocked=True).update(
+        is_blocked=False,
+        blocked_at=None,
+        block_reason='',
+    )
+
+    if updated:
+        messages.success(request, f'{updated} student(s) have been unblocked successfully.')
+    else:
+        messages.info(request, 'No blocked students found.')
+
     return redirect('library:student_list')

@@ -13,7 +13,7 @@ def _safe_next_url(request):
         require_https=request.is_secure(),
     ):
         return next_url
-    return resolve_url('entry_monitor')
+    return resolve_url('home')
 
 
 def login_view(request):
