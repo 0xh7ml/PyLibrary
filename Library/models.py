@@ -133,6 +133,15 @@ class LibraryEntry(models.Model):
             return "Student"
         return "Unknown"
 
+    @property
+    def user_department_name(self):
+        """Get department name for Student/Faculty records."""
+        if self.user and getattr(self.user, 'department', None):
+            return self.user.department.name
+        if self.student and self.student.department:
+            return self.student.department.name
+        return "N/A"
+
 class ELibrarySession(models.Model):
     """Track e-library seat usage sessions"""
     SESSION_STATUS_CHOICES = [
@@ -223,3 +232,12 @@ class ELibrarySession(models.Model):
         elif self.student:
             return "Student"
         return "Unknown"
+
+    @property
+    def user_department_name(self):
+        """Get department name for Student/Faculty records."""
+        if self.user and getattr(self.user, 'department', None):
+            return self.user.department.name
+        if self.student and self.student.department:
+            return self.student.department.name
+        return "N/A"

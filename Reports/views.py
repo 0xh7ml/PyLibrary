@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
 from datetime import datetime, timedelta
 from Library.models import *
 
@@ -25,6 +26,9 @@ def elibrary_report_view(request):
         'library_entry'
     ).all()
     
+    has_filters = bool(daterange or student_id or year)
+    today = timezone.localdate()
+
     # Apply date range filter
     if daterange:
         try:
@@ -72,11 +76,16 @@ def elibrary_report_view(request):
             pass
     
     # Order by most recent first
+    if not has_filters:
+        queryset = queryset.filter(start_time__date=today)
+
     queryset = queryset.order_by('-start_time')
     
     # Context for template - return all filtered records (no fixed pagination limit)
     context = {
         'data': queryset,
+        'total_count': queryset.count(),
+        'report_scope_label': 'Today' if not has_filters else 'Filtered',
         'filter_values': {
             'daterange': daterange,
             'student_id': student_id,
@@ -102,6 +111,9 @@ def library_report_view(request):
         'student__department'
     ).all()
     
+    has_filters = bool(daterange or student_id or year)
+    today = timezone.localdate()
+
     # Apply date range filter
     if daterange:
         try:
@@ -149,11 +161,16 @@ def library_report_view(request):
             pass
     
     # Order by most recent first
+    if not has_filters:
+        queryset = queryset.filter(entry_time__date=today)
+
     queryset = queryset.order_by('-entry_time')
     
     # Context for template - return all filtered records (no fixed pagination limit)
     context = {
         'data': queryset,
+        'total_count': queryset.count(),
+        'report_scope_label': 'Today' if not has_filters else 'Filtered',
         'filter_values': {
             'daterange': daterange,
             'student_id': student_id,
