@@ -454,7 +454,8 @@ function optimizeForBarcode(inputId = 'studentId', formId = 'entryForm', options
             if (rapidScan) {
                 submitIfAllowed();
             } else {
-                this.focus();
+                // Manual keyboard entry should still submit on Enter.
+                triggerFormSubmit(form);
             }
         }
     });
