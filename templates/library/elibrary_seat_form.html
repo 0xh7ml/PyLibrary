@@ -26,6 +26,7 @@
         
         <form method="POST">
             {% csrf_token %}
+            {{ form.layout_slot }}
             <div class="card-body">
                 {% if form.non_field_errors %}
                     <div class="alert alert-danger">

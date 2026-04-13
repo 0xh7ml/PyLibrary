@@ -813,8 +813,9 @@ function renderSeatLayoutAsLibraryVisual() {
 
     const seatMap = new Map();
     originalSeats.forEach((seatNode) => {
-        const n = parsePcNumber(seatNode.getAttribute('data-seat-number'));
-        if (n !== null) {
+        const slotAttr = seatNode.getAttribute('data-seat-slot');
+        const n = slotAttr ? parseInt(slotAttr, 10) : parsePcNumber(seatNode.getAttribute('data-seat-number'));
+        if (Number.isInteger(n)) {
             seatMap.set(n, {
                 seatId: seatNode.getAttribute('data-seat-id'),
                 seatNumber: seatNode.getAttribute('data-seat-number'),

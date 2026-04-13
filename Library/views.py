@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.db.models import Q
+import re
 from .models import Department, ElibrarySeat, Student
 from .forms import DepartmentForm, ElibrarySeatForm, StudentForm
 
@@ -91,7 +92,7 @@ def elibrary_seat_list(request):
     if status_filter:
         seats = seats.filter(status=status_filter)
     
-    seats = seats.order_by('pc_no')
+    seats = seats.order_by('layout_slot', 'pc_no')
     
     # Pagination
     paginator = Paginator(seats, 10)
@@ -103,13 +104,26 @@ def elibrary_seat_list(request):
         'elibrary_seats': page_obj,
         'search': search,
         'status_filter': status_filter,
-        'all_seats_layout': list(ElibrarySeat.objects.order_by('pc_no').values('id', 'pc_no', 'status')),
+        'all_seats_layout': list(
+            ElibrarySeat.objects.order_by('layout_slot', 'pc_no').values('id', 'pc_no', 'status', 'layout_slot')
+        ),
     }
     return render(request, 'library/elibrary_seat_list.html', context)
 
 @login_required
 def elibrary_seat_create(request):
     """Create a new e-library seat"""
+    requested_pc_no = request.GET.get('pc_no', '').strip()
+    requested_slot = request.GET.get('slot', '').strip()
+
+    inferred_slot = None
+    if requested_slot.isdigit():
+        inferred_slot = int(requested_slot)
+    elif requested_pc_no:
+        matched = re.search(r'\d+', requested_pc_no)
+        if matched:
+            inferred_slot = int(matched.group(0))
+
     if request.method == 'POST':
         form = ElibrarySeatForm(request.POST)
         if form.is_valid():
@@ -117,8 +131,12 @@ def elibrary_seat_create(request):
             messages.success(request, 'E-Library seat created successfully!')
             return redirect('library:elibrary_seat_list')
     else:
-        initial_pc_no = request.GET.get('pc_no', '').strip()
-        form = ElibrarySeatForm(initial={'pc_no': initial_pc_no} if initial_pc_no else None)
+        initial = {}
+        if requested_pc_no:
+            initial['pc_no'] = requested_pc_no
+        if inferred_slot:
+            initial['layout_slot'] = inferred_slot
+        form = ElibrarySeatForm(initial=initial or None)
     
     context = {
         'form': form,

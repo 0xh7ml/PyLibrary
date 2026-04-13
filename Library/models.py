@@ -22,6 +22,7 @@ class ElibrarySeat(models.Model):
         ('Maintenance', 'Maintenance'),
     ]
     pc_no = models.CharField(max_length=50)
+    layout_slot = models.PositiveIntegerField(null=True, blank=True, unique=True)
     status = models.CharField(max_length=50, choices=PC_STATUS_CHOICES, default='Available')
 
     class Meta:

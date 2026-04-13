@@ -169,6 +169,7 @@
                 <div class="seat-cell seat-{{ seat.status|lower }}" 
                      data-seat-id="{{ seat.id }}" 
                      data-seat-number="{{ seat.pc_no }}"
+                     data-seat-slot="{{ seat.layout_slot|default:'' }}"
                      data-status="{{ seat.status|lower }}"
                      {% if seat.status == 'Available' %}
                          onclick="selectSeatElement(this)"
