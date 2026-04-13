@@ -89,7 +89,7 @@
                             </td>
                             <td>{{ item.user_name }}</td>
                             <td>{{ item.user_type }}</td>
-                            <td>{{ item.student.department.name|default:"N/A" }}</td>
+                            <td>{{ item.user_department_name }}</td>
                             <td>
                                 <small class="text-muted">{{ item.entry_time|date:"SHORT_DATETIME_FORMAT"|upper }}</small>
                             </td>

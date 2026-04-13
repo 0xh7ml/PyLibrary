@@ -87,7 +87,7 @@
                             <td><span class="badge badge-primary">{{ item.user_id_no }}</span></td>
                             <td>{{ item.user_name }}</td>
                             <td>{{ item.user_type }}</td>
-                            <td>{{ item.student.department.name|default:"N/A" }}</td>
+                            <td>{{ item.user_department_name }}</td>
                             <td>{{ item.seat }}</td>
                             <td><small class="text-muted">{{ item.start_time|date:"SHORT_DATETIME_FORMAT"|upper }}</small></td>
                             <td><small class="text-muted">{{ item.end_time|date:"SHORT_DATETIME_FORMAT"|upper }}</small></td>
