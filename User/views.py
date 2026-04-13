@@ -623,7 +623,7 @@ def submit_ticket_handler(request):
 
 def pc_layout(request):
     """Render the PC layout for seat selection"""
-    all_seats = ElibrarySeat.objects.all().order_by('pc_no')
+    all_seats = ElibrarySeat.objects.all().order_by('layout_slot', 'pc_no')
     available_seats = all_seats.filter(status='Available')
     context = {
         'all_seats': all_seats,

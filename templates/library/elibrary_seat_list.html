@@ -60,7 +60,7 @@
 
                     var byNumber = {};
                     raw.forEach(function (seat) {
-                        var n = extractNumber(seat.pc_no);
+                        var n = seat.layout_slot || extractNumber(seat.pc_no);
                         if (n) byNumber[n] = seat;
                     });
 
@@ -115,7 +115,7 @@
                             node.textContent = seat.pc_no;
                         } else {
                             node.classList.add('empty');
-                            node.href = '{% url "library:elibrary_seat_create" %}?pc_no=' + encodeURIComponent(fmtPcNo(num));
+                            node.href = '{% url "library:elibrary_seat_create" %}?slot=' + num + '&pc_no=' + encodeURIComponent(fmtPcNo(num));
                             node.title = 'Add seat at ' + fmtPcNo(num);
                             node.textContent = fmtPcNo(num);
                         }
