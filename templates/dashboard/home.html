@@ -14,7 +14,7 @@
             <div class="card-body">
                 <div class="row">
                     <!-- Students in Library -->
-                    <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="col-lg-3 col-md-6 mb-3">
                         <div class="info-box bg-info">
                             <span class="info-box-icon">
                                 <i class="fas fa-university"></i>
@@ -28,7 +28,7 @@
                     </div>
 
                     <!-- Using E-Library -->
-                    <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="col-lg-3 col-md-6 mb-3">
                         <div class="info-box bg-purple">
                             <span class="info-box-icon">
                                 <i class="fas fa-laptop"></i>
@@ -42,7 +42,7 @@
                     </div>
 
                     <!-- Main Library Only -->
-                    <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="col-lg-3 col-md-6 mb-3">
                         <div class="info-box bg-warning">
                             <span class="info-box-icon">
                                 <i class="fas fa-book-open"></i>
@@ -51,6 +51,20 @@
                                 <span class="info-box-text text-white">Main Library Only</span>
                                 <span class="info-box-number text-white">{{ main_library_only }}</span>
                                 <span class="info-box-more text-white-50">Reading/Studying</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Today's Total Entry -->
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="info-box bg-success">
+                            <span class="info-box-icon">
+                                <i class="fas fa-door-open"></i>
+                            </span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-white">Today's Total Entry</span>
+                                <span class="info-box-number text-white">{{ todays_total_entry }}</span>
+                                <span class="info-box-more text-white-50">All entries today</span>
                             </div>
                         </div>
                     </div>

@@ -22,6 +22,11 @@ def home(request):
         status='Entered',
         entry_time__date=today
     ).count()
+
+    # Total library entries recorded today
+    todays_total_entry = LibraryEntry.objects.filter(
+        entry_time__date=today
+    ).count()
     
     # Students currently using E-Library
     students_using_elibrary = ELibrarySession.objects.filter(
@@ -82,6 +87,7 @@ def home(request):
         'students_in_library': students_in_library,
         'students_using_elibrary': students_using_elibrary,
         'main_library_only': main_library_only,
+        'todays_total_entry': todays_total_entry,
         
         # PC Status
         'total_pcs': total_pcs,
