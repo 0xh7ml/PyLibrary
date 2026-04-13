@@ -40,19 +40,28 @@ def home(request):
     
     # PC Usage Analytics for last 7 days
     usage_data = []
+    library_usage_data = []
     for i in range(7):
         date = today - timedelta(days=6-i)
         usage_count = ELibrarySession.objects.filter(
             start_time__date=date
         ).count()
+        library_usage_count = LibraryEntry.objects.filter(
+            entry_time__date=date
+        ).count()
         usage_data.append({
             'date': date.strftime('%a'),
             'count': usage_count
+        })
+        library_usage_data.append({
+            'date': date.strftime('%a'),
+            'count': library_usage_count
         })
     
     # Weekly summary for chart
     week_labels = [day['date'] for day in usage_data]
     week_data = [day['count'] for day in usage_data]
+    library_week_data = [day['count'] for day in library_usage_data]
     
     # Ticket Statistics (calculate before using in ticket_data)
     total_tickets = Ticket.objects.count()
@@ -91,6 +100,7 @@ def home(request):
         # Chart data
         'week_labels': week_labels,
         'week_data': week_data,
+        'library_week_data': library_week_data,
         'ticket_labels': ticket_labels,
         'ticket_data': ticket_data,
         
