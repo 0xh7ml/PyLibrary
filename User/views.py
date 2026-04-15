@@ -89,7 +89,7 @@ def enforce_midnight_session_policy():
         session.save(update_fields=['end_time', 'status'])
 
         if session.seat_id:
-            ElibrarySeat.objects.filter(id=session.seat_id).update(status='Available')
+            ElibrarySeat.objects.filter(id=session.seat_id, status='Reserved').update(status='Available')
 
     if students_to_block:
         Student.objects.filter(id__in=students_to_block).update(
