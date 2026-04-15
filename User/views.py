@@ -98,6 +98,19 @@ def enforce_midnight_session_policy():
             block_reason='Auto-blocked: did not exit before 12:00 AM (Bangladesh time).',
         )
 
+    # Keep seat states consistent: any Reserved seat without an active session
+    # is stale and should be released for the new day.
+    active_seat_ids = ELibrarySession.objects.filter(
+        status='Active',
+        end_time__isnull=True,
+        seat_id__isnull=False,
+    ).values_list('seat_id', flat=True)
+
+    stale_reserved_qs = ElibrarySeat.objects.filter(status='Reserved')
+    if active_seat_ids:
+        stale_reserved_qs = stale_reserved_qs.exclude(id__in=active_seat_ids)
+    stale_reserved_qs.update(status='Available')
+
 
 def blocked_student_response(user):
     return JsonResponse({

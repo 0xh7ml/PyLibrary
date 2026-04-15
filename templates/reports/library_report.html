@@ -16,8 +16,9 @@
         <div class="card-body">
             <form id="filterForm" method="POST">
                 {% csrf_token %}
+                <input type="hidden" id="reportModeField" name="report_mode" value="{{ filter_values.report_mode|default:'' }}">
                 <div class="row g-2 align-items-center">
-                    <div class="col-auto">
+                    <div class="col-auto regular-filter-control">
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="far fa-calendar-alt text-primary"></i>
@@ -27,7 +28,7 @@
                                     value="{{ filter_values.daterange|default:'' }}">
                         </div>
                     </div>
-                    <div class="col-auto">
+                    <div class="col-auto regular-filter-control">
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="fas fa-graduation-cap text-warning"></i>
@@ -38,7 +39,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-auto">
+                    <div class="col-auto regular-filter-control">
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="fas fa-user-graduate text-success"></i>
@@ -56,6 +57,31 @@
                             <button type="button" class="btn btn-info px-4" id="resetFilters">
                                 <i class="fas fa-undo me-1"></i>Reset
                             </button>
+                            <button type="button" class="btn btn-outline-warning px-4" id="monthlyReportBtn">
+                                <i class="fas fa-calendar-alt me-1"></i>Monthly Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-2 align-items-center mt-3 d-none" id="monthlyFiltersRow">
+                    <div class="col-auto">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-calendar text-warning"></i>
+                            </span>
+                            <select class="form-select" id="monthlyYearFilter" name="report_year" style="min-width: 180px;">
+                                <option value="">-- Select Year --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-auto d-none" id="monthlyMonthWrapper">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-calendar-day text-success"></i>
+                            </span>
+                            <select class="form-select" id="monthlyMonthFilter" name="report_month" style="min-width: 180px;">
+                                <option value="">-- Select Month --</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -66,6 +92,30 @@
     <div class="card" id="libraryReportSection">
         <div class="card-body">
             <div class="table-responsive">
+                {% if is_monthly_report %}
+                <table id="dataTable" class="table table-bordered text-nowrap">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th>Date</th>
+                            <th>Total Students</th>
+                            {% for department in department_columns %}
+                                <th>{{ department }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody class="text-center">
+                        {% for item in data %}
+                        <tr>
+                            <td>{{ item.report_date|date:"d M Y" }}</td>
+                            <td><span class="badge badge-primary">{{ item.total_students }}</span></td>
+                            {% for cell in item.department_cells %}
+                                <td>{{ cell.value }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
                 <table id="dataTable" class="table table-bordered text-nowrap">
                     <thead class="table-dark text-center">
                         <tr>
@@ -118,6 +168,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                {% endif %}
             </div>    
         </div>
         <div class="card-footer d-flex justify-content-between align-items-center">
@@ -139,6 +190,8 @@ $(document).ready(function() {
     function getCsrfToken() {
         return $('[name=csrfmiddlewaretoken]').val();
     }
+
+    var monthlyMonthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     
     // Populate year options
     function populateYearOptions() {
@@ -151,6 +204,52 @@ $(document).ready(function() {
         for (var year = endYear; year >= startYear; year--) {
             var isSelected = '{{ filter_values.year }}' == year.toString() ? 'selected' : '';
             yearSelect.append('<option value="' + year + '" ' + isSelected + '>' + year + '</option>');
+        }
+    }
+
+    function populateMonthlyYearOptions() {
+        var currentYear = new Date().getFullYear();
+        var monthlyYearSelect = $('#monthlyYearFilter');
+        monthlyYearSelect.find('option:not(:first)').remove();
+
+        for (var year = currentYear; year >= currentYear - 9; year--) {
+            var isSelected = '{{ filter_values.report_year|default:"" }}' == year.toString() ? 'selected' : '';
+            monthlyYearSelect.append('<option value="' + year + '" ' + isSelected + '>' + year + '</option>');
+        }
+    }
+
+    function populateMonthlyMonthOptions() {
+        var selectedYear = $('#monthlyYearFilter').val();
+        var monthlyMonthSelect = $('#monthlyMonthFilter');
+        monthlyMonthSelect.find('option:not(:first)').remove();
+
+        if (!selectedYear) {
+            $('#monthlyMonthWrapper').addClass('d-none');
+            return;
+        }
+
+        for (var month = 1; month <= 12; month++) {
+            var isSelected = '{{ filter_values.report_month|default:"" }}' == month.toString() ? 'selected' : '';
+            monthlyMonthSelect.append('<option value="' + month + '" ' + isSelected + '>' + monthlyMonthNames[month - 1] + '</option>');
+        }
+
+        $('#monthlyMonthWrapper').removeClass('d-none');
+    }
+
+    function toggleReportModeControls() {
+        var isMonthly = $('#reportModeField').val() === 'monthly';
+        $('.regular-filter-control').toggleClass('d-none', isMonthly);
+        $('#monthlyFiltersRow').toggleClass('d-none', !isMonthly);
+        $('#monthlyReportBtn').toggleClass('btn-warning', isMonthly);
+        $('#monthlyReportBtn').toggleClass('btn-outline-warning', !isMonthly);
+
+        if (isMonthly) {
+            populateMonthlyYearOptions();
+            populateMonthlyMonthOptions();
+        } else {
+            $('#monthlyYearFilter').val('');
+            $('#monthlyMonthFilter').val('');
+            $('#monthlyMonthWrapper').addClass('d-none');
         }
     }
     
@@ -191,10 +290,35 @@ $(document).ready(function() {
     
     // Populate year options
     populateYearOptions();
+    populateMonthlyYearOptions();
+    toggleReportModeControls();
+
+    $('#monthlyReportBtn').on('click', function() {
+        var isMonthly = $('#reportModeField').val() === 'monthly';
+        $('#reportModeField').val(isMonthly ? '' : 'monthly');
+        toggleReportModeControls();
+    });
+
+    $('#monthlyYearFilter').on('change', function() {
+        populateMonthlyMonthOptions();
+    });
     
     // Handle form submission with AJAX POST
     $('#filterForm').on('submit', function(e) {
         e.preventDefault();
+
+        if ($('#reportModeField').val() === 'monthly' && (!$('#monthlyYearFilter').val() || !$('#monthlyMonthFilter').val())) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Monthly Report',
+                    text: 'Please select both year and month.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+            return;
+        }
         
         // Show loading state
         $('#applyFilters').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Loading...');
@@ -202,9 +326,12 @@ $(document).ready(function() {
         // Get form data
         var formData = {
             'csrfmiddlewaretoken': getCsrfToken(),
+            'report_mode': $('#reportModeField').val(),
             'daterange': $('#daterange').val().trim(),
             'year': $('#yearFilter').val(),
-            'student_id': $('#studentFilter').val().trim()
+            'student_id': $('#studentFilter').val().trim(),
+            'report_year': $('#monthlyYearFilter').val(),
+            'report_month': $('#monthlyMonthFilter').val()
         };
         
         // Send AJAX POST request
@@ -242,15 +369,20 @@ $(document).ready(function() {
         $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Resetting...');
         
         // Clear all form fields
+        $('#reportModeField').val('');
         $('#daterange').val('');
         $('#yearFilter').val('');
         $('#studentFilter').val('');
+        $('#monthlyYearFilter').val('');
+        $('#monthlyMonthFilter').val('');
         
         // Reset daterangepicker if exists
         if ($('#daterange').data('daterangepicker')) {
             $('#daterange').data('daterangepicker').setStartDate(moment());
             $('#daterange').data('daterangepicker').setEndDate(moment());
         }
+
+        toggleReportModeControls();
         
         // Send AJAX POST request with empty filters
         $.ajax({

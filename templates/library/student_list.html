@@ -144,6 +144,9 @@
         {% if show_pagination %}
         {% include "utils/pagination.html" with data=students %}
         {% endif %}
+        <div class="card-footer bg-white border-top text-muted">
+            Total Students: <strong>{{ total_students_count }}</strong>
+        </div>
     </div>
 </div>
 {% endblock content %}

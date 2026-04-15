@@ -212,6 +212,7 @@ def student_list(request):
         'departments': Department.objects.order_by('name'),
         'show_pagination': show_pagination,
         'serial_offset': serial_offset,
+        'total_students_count': students.count(),
     }
     return render(request, 'library/student_list.html', context)
 
