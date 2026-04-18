@@ -1043,7 +1043,7 @@ function initializeServiceMonitor() {
         }
         
         if (studentId.length < 6) {
-            showMessage('ID must be at least 6 characters long', 'warning');
+            showMessage('ID must be at least 8 characters long', 'warning');
             studentIdInput.focus();
             return false;
         }
