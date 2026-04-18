@@ -115,9 +115,8 @@
                             node.textContent = seat.pc_no;
                         } else {
                             node.classList.add('empty');
-                            node.href = '{% url "library:elibrary_seat_create" %}?slot=' + num + '&pc_no=' + encodeURIComponent(fmtPcNo(num));
-                            node.title = 'Add seat at ' + fmtPcNo(num);
-                            node.textContent = fmtPcNo(num);
+                            node.href = '{% url "library:elibrary_seat_create" %}?slot=' + num;
+                            node.title = 'Add seat';
                         }
 
                         return node;
