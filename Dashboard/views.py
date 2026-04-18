@@ -7,6 +7,7 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from datetime import datetime, timedelta
 from Library.models import LibraryEntry, ELibrarySession, ElibrarySeat, Student
+from Library.utils.pc_utils import canonical_elibrary_seats, cleanup_duplicate_elibrary_seats
 from Tickets.models import Ticket
 
 # Create your views here.
@@ -38,10 +39,12 @@ def home(request):
     main_library_only = students_in_library - students_using_elibrary
     
     # PC Status Overview
-    total_pcs = ElibrarySeat.objects.count()
-    available_pcs = ElibrarySeat.objects.filter(status='Available').count()
-    in_use_pcs = ELibrarySession.objects.filter(status='Active').count()
-    out_of_service_pcs = ElibrarySeat.objects.filter(status='Maintenance').count()
+    cleanup_duplicate_elibrary_seats()
+    canonical_seats = canonical_elibrary_seats()
+    total_pcs = canonical_seats.count()
+    available_pcs = canonical_seats.filter(status='Available').count()
+    in_use_pcs = canonical_seats.filter(status='Reserved').count()
+    out_of_service_pcs = canonical_seats.filter(status='Maintenance').count()
     
     # PC Usage Analytics for last 7 days
     usage_data = []

@@ -1012,6 +1012,10 @@ function initializeServiceMonitor() {
     optimizeForBarcode('studentId', 'serviceForm', { autoSubmitLength: 8 });
     maintainInputFocus('studentId');
     const serviceForm = document.getElementById('serviceForm');
+
+    const serviceToastContainer = document.getElementById('toastContainer') || createToastContainer();
+    serviceToastContainer.classList.remove('end-0');
+    serviceToastContainer.classList.add('entry-monitor-toast');
     
     // Initialize ticket submission functionality
     initializeTicketSubmission();
@@ -1039,7 +1043,7 @@ function initializeServiceMonitor() {
         }
         
         if (studentId.length < 6) {
-            showMessage('ID must be at least 6 characters long', 'warning');
+            showMessage('ID must be at least 8 characters long', 'warning');
             studentIdInput.focus();
             return false;
         }

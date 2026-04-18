@@ -10,6 +10,7 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from zoneinfo import ZoneInfo
 from Library.models import Student, Faculty, LibraryEntry, ELibrarySession, ElibrarySeat, Department
+from Library.utils.pc_utils import canonical_elibrary_seats, cleanup_duplicate_elibrary_seats
 from Tickets.models import Ticket
 from Tickets.utils import send_ticket_created_email
 import json
@@ -483,7 +484,8 @@ def service_monitor_handler(request):
                     })
                 else:
                     # User is starting e-library service - check for available seats
-                    available_seats = ElibrarySeat.objects.filter(status='Available')
+                    cleanup_duplicate_elibrary_seats()
+                    available_seats = canonical_elibrary_seats().filter(status='Available')
                     if not available_seats.exists():
                         return JsonResponse({
                             'status': 'error',
@@ -636,7 +638,8 @@ def submit_ticket_handler(request):
 
 def pc_layout(request):
     """Render the PC layout for seat selection"""
-    all_seats = ElibrarySeat.objects.all().order_by('layout_slot', 'pc_no')
+    cleanup_duplicate_elibrary_seats()
+    all_seats = canonical_elibrary_seats().order_by('layout_slot', 'pc_no')
     available_seats = all_seats.filter(status='Available')
     context = {
         'all_seats': all_seats,

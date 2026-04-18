@@ -113,16 +113,9 @@ def elibrary_seat_list(request):
 @login_required
 def elibrary_seat_create(request):
     """Create a new e-library seat"""
-    requested_pc_no = request.GET.get('pc_no', '').strip()
     requested_slot = request.GET.get('slot', '').strip()
 
-    inferred_slot = None
-    if requested_slot.isdigit():
-        inferred_slot = int(requested_slot)
-    elif requested_pc_no:
-        matched = re.search(r'\d+', requested_pc_no)
-        if matched:
-            inferred_slot = int(matched.group(0))
+    inferred_slot = int(requested_slot) if requested_slot.isdigit() else None
 
     if request.method == 'POST':
         form = ElibrarySeatForm(request.POST)
@@ -132,8 +125,6 @@ def elibrary_seat_create(request):
             return redirect('library:elibrary_seat_list')
     else:
         initial = {}
-        if requested_pc_no:
-            initial['pc_no'] = requested_pc_no
         if inferred_slot:
             initial['layout_slot'] = inferred_slot
         form = ElibrarySeatForm(initial=initial or None)

@@ -12,9 +12,23 @@
     <style>
         body {
             background-color: #f8f9fa;
+            background-image: linear-gradient(rgba(248, 249, 250, 0.72), rgba(248, 249, 250, 0.72)), url("{% static 'img/IMG-20260418-WA0005.jpg' %}");
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+        }
+
+        .iubat-corner-logo {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            width: 78px;
+            height: auto;
+            z-index: 1030;
         }
 
         .logo-wrapper {
@@ -114,6 +128,37 @@
             overflow-y: auto;
         }
 
+        /* Service monitor toast placement and size */
+        #toastContainer.entry-monitor-toast {
+            top: 1rem !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%);
+            padding: 0 !important;
+        }
+
+        #toastContainer.entry-monitor-toast .toast {
+            min-width: 460px;
+            border-radius: 1rem;
+        }
+
+        #toastContainer.entry-monitor-toast .toast-body {
+            font-size: 1.1rem;
+            padding: 1rem 1.25rem;
+        }
+
+        @media (max-width: 576px) {
+            #toastContainer.entry-monitor-toast {
+                width: calc(100vw - 1.5rem);
+                left: 0.75rem !important;
+                transform: none;
+            }
+
+            #toastContainer.entry-monitor-toast .toast {
+                min-width: 100%;
+            }
+        }
+
         /* Toast type specific styles */
         .toast.bg-success .toast-progress-bar {
             background: rgba(255, 255, 255, 0.9);
@@ -135,6 +180,12 @@
             .service-card {
                 margin: 1rem;
             }
+
+            .iubat-corner-logo {
+                width: 60px;
+                top: 0.75rem;
+                right: 0.75rem;
+            }
             
             .toast {
                 min-width: 280px;
@@ -143,12 +194,14 @@
     </style>
 </head>
 <body>
+    <img class="iubat-corner-logo" src="{% static 'img/logo-iubat.png' %}" alt="IUBAT Logo">
+
     <main class="main-content">
         <div class="card service-card">
             <div class="card-body p-5 text-center">
                 <!-- Service Icon -->
                 <div class="logo-wrapper">
-                   <img src="{% static 'img/logo-iubat.png' %}" alt="Library Logo" style="width: 100%; height: auto;">
+                   <img src="{% static 'img/logo.png' %}" alt="Library Logo" style="width: 100%; height: auto;">
                 </div>
 
                 <!-- Title and Description -->
