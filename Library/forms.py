@@ -1,6 +1,5 @@
 from django import forms
 from django.utils import timezone
-import re
 from .models import Department, ElibrarySeat, Student
 
 class DepartmentForm(forms.ModelForm):
@@ -25,7 +24,7 @@ class ElibrarySeatForm(forms.ModelForm):
         widgets = {
             'pc_no': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter PC number (e.g., PC-001)',
+                'placeholder': 'Enter PC number',
                 'required': True
             }),
             'status': forms.Select(attrs={
@@ -46,12 +45,6 @@ class ElibrarySeatForm(forms.ModelForm):
         pc_no = (cleaned_data.get('pc_no') or '').strip()
         layout_slot = cleaned_data.get('layout_slot')
 
-        # Infer slot from PC label only when no explicit slot is provided.
-        if not layout_slot and pc_no:
-            matched = re.search(r'\d+', pc_no)
-            if matched:
-                layout_slot = int(matched.group(0))
-
         # Preserve current slot on edit if PC label has no digits.
         if not layout_slot and self.instance and self.instance.pk:
             layout_slot = self.instance.layout_slot
@@ -64,6 +57,16 @@ class ElibrarySeatForm(forms.ModelForm):
                 raise forms.ValidationError(
                     f'Layout slot {layout_slot} is already assigned to another PC. '
                     'Please choose a different slot/PC number.'
+                )
+
+        if pc_no:
+            duplicate_qs = ElibrarySeat.objects.filter(pc_no__iexact=pc_no)
+            if self.instance and self.instance.pk:
+                duplicate_qs = duplicate_qs.exclude(pk=self.instance.pk)
+            if duplicate_qs.exists():
+                raise forms.ValidationError(
+                    f'PC number {pc_no} is already assigned to another seat. '
+                    'Please use a unique PC number.'
                 )
 
         cleaned_data['layout_slot'] = layout_slot
