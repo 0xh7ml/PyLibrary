@@ -1012,6 +1012,10 @@ function initializeServiceMonitor() {
     optimizeForBarcode('studentId', 'serviceForm', { autoSubmitLength: 8 });
     maintainInputFocus('studentId');
     const serviceForm = document.getElementById('serviceForm');
+
+    const serviceToastContainer = document.getElementById('toastContainer') || createToastContainer();
+    serviceToastContainer.classList.remove('end-0');
+    serviceToastContainer.classList.add('entry-monitor-toast');
     
     // Initialize ticket submission functionality
     initializeTicketSubmission();
