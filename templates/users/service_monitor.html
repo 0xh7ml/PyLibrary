@@ -17,6 +17,15 @@
             flex-direction: column;
         }
 
+        .iubat-corner-logo {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            width: 78px;
+            height: auto;
+            z-index: 1030;
+        }
+
         .logo-wrapper {
             width: 80px;
             height: 80px;
@@ -135,6 +144,12 @@
             .service-card {
                 margin: 1rem;
             }
+
+            .iubat-corner-logo {
+                width: 60px;
+                top: 0.75rem;
+                right: 0.75rem;
+            }
             
             .toast {
                 min-width: 280px;
@@ -143,12 +158,14 @@
     </style>
 </head>
 <body>
+    <img class="iubat-corner-logo" src="{% static 'img/logo-iubat.png' %}" alt="IUBAT Logo">
+
     <main class="main-content">
         <div class="card service-card">
             <div class="card-body p-5 text-center">
                 <!-- Service Icon -->
                 <div class="logo-wrapper">
-                   <img src="{% static 'img/logo-iubat.png' %}" alt="Library Logo" style="width: 100%; height: auto;">
+                   <img src="{% static 'img/logo.png' %}" alt="Library Logo" style="width: 100%; height: auto;">
                 </div>
 
                 <!-- Title and Description -->
