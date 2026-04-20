@@ -45,6 +45,31 @@ def home(request):
     available_pcs = canonical_seats.filter(status='Available').count()
     in_use_pcs = canonical_seats.filter(status='Reserved').count()
     out_of_service_pcs = canonical_seats.filter(status='Maintenance').count()
+
+    active_sessions = ELibrarySession.objects.select_related('content_type', 'student', 'seat').filter(
+        status='Active',
+        end_time__isnull=True,
+        seat__isnull=False,
+    )
+    active_session_map = {}
+    for session in active_sessions:
+        user_obj = session.user if session.user else session.student
+        active_session_map[session.seat_id] = {
+            'name': getattr(user_obj, 'name', ''),
+            'id_no': getattr(user_obj, 'id_no', ''),
+        }
+
+    dashboard_seats_layout = []
+    for seat in canonical_seats.order_by('layout_slot', 'pc_no').values('id', 'pc_no', 'status', 'layout_slot'):
+        session_info = active_session_map.get(seat['id'], {})
+        dashboard_seats_layout.append({
+            'id': seat['id'],
+            'pc_no': seat['pc_no'],
+            'status': seat['status'],
+            'layout_slot': seat['layout_slot'],
+            'reserved_user_name': session_info.get('name', ''),
+            'reserved_user_id': session_info.get('id_no', ''),
+        })
     
     # PC Usage Analytics for last 7 days
     usage_data = []
@@ -99,6 +124,7 @@ def home(request):
         'available_pcs': available_pcs,
         'in_use_pcs': in_use_pcs,
         'out_of_service_pcs': out_of_service_pcs,
+        'dashboard_seats_layout': dashboard_seats_layout,
         
         # Ticket Statistics
         'total_tickets': total_tickets,

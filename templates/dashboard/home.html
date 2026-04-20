@@ -146,6 +146,31 @@
     </div>
 </div>
 
+<!-- E-Library Seats Visualization -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-th text-info"></i> E-Library Seats Visualization
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="dashboard-library-visual-wrap">
+                    <div id="dashboardLibraryVisual" class="dashboard-library-visual"></div>
+                </div>
+                <div class="dashboard-layout-legend">
+                    <span><i class="layout-dot" style="background:#37c57e;"></i>Available</span>
+                    <span><i class="layout-dot" style="background:#2081c4;"></i>Reserved</span>
+                    <span><i class="layout-dot" style="background:#ffa500;"></i>Maintenance</span>
+                    <span><i class="layout-dot" style="background:#eef1f4;border:1px dashed #d4dbe1;"></i>Empty</span>
+                </div>
+                {{ dashboard_seats_layout|json_script:"dashboard-seat-data" }}
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Charts Section -->
 <div class="row">
     <!-- Left Column - Ticket Status Pie Chart -->
@@ -278,6 +303,93 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 $(document).ready(function() {
+    function renderDashboardLibraryVisual() {
+        var dataNode = document.getElementById('dashboard-seat-data');
+        var visual = document.getElementById('dashboardLibraryVisual');
+        if (!dataNode || !visual) return;
+
+        var raw = JSON.parse(dataNode.textContent || '[]');
+
+        function extractNumber(pcNo) {
+            var matched = String(pcNo || '').match(/\d+/);
+            return matched ? parseInt(matched[0], 10) : null;
+        }
+
+        var byNumber = {};
+        raw.forEach(function(seat) {
+            var n = seat.layout_slot || extractNumber(seat.pc_no);
+            if (n) {
+                byNumber[n] = seat;
+            }
+        });
+
+        var existingNumbers = Object.keys(byNumber).map(function(k) { return parseInt(k, 10); });
+        var maxPcNumber = existingNumbers.length ? Math.max.apply(null, existingNumbers) : 48;
+        var pairCount = Math.max(4, Math.ceil(maxPcNumber / 12));
+
+        visual.innerHTML = '';
+
+        for (var pair = 1; pair <= pairCount; pair++) {
+            var leftStart = (pair - 1) * 12 + 1;
+            var rightStart = leftStart + 6;
+
+            var block = document.createElement('div');
+            block.className = 'dashboard-pair-block';
+
+            var cols = document.createElement('div');
+            cols.className = 'dashboard-pair-columns';
+
+            var leftCol = document.createElement('div');
+            leftCol.className = 'dashboard-pair-col';
+            for (var ln = leftStart + 5; ln >= leftStart; ln--) {
+                leftCol.appendChild(buildNode(ln));
+            }
+
+            var rightCol = document.createElement('div');
+            rightCol.className = 'dashboard-pair-col';
+            for (var rn = rightStart; rn <= rightStart + 5; rn++) {
+                rightCol.appendChild(buildNode(rn));
+            }
+
+            cols.appendChild(leftCol);
+            cols.appendChild(rightCol);
+            block.appendChild(cols);
+
+            var title = document.createElement('div');
+            title.className = 'dashboard-pair-title';
+            title.textContent = 'Pair ' + pair;
+            block.appendChild(title);
+
+            visual.appendChild(block);
+        }
+
+        function buildNode(num) {
+            var seat = byNumber[num];
+            var node = document.createElement('div');
+            node.className = 'dashboard-seat-node';
+
+            if (!seat) {
+                node.classList.add('empty');
+                node.title = 'Empty slot';
+                return node;
+            }
+
+            var status = String(seat.status || '').toLowerCase();
+            node.classList.add(status);
+            node.textContent = seat.pc_no;
+
+            var hover = seat.pc_no + ' (' + seat.status + ')';
+            if (status === 'reserved' && (seat.reserved_user_id || seat.reserved_user_name)) {
+                hover += '\nID: ' + (seat.reserved_user_id || 'N/A') + ' | Name: ' + (seat.reserved_user_name || 'N/A');
+            }
+            node.title = hover;
+
+            return node;
+        }
+    }
+
+    renderDashboardLibraryVisual();
+
     // Ticket Status Pie Chart
     const ticketCtx = document.getElementById('ticketChart').getContext('2d');
     
@@ -532,6 +644,99 @@ $(document).ready(function() {
 
 .chart-container {
     position: relative;
+}
+
+.dashboard-library-visual-wrap { overflow-x: auto; }
+
+.dashboard-library-visual {
+    min-width: 760px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+}
+
+.dashboard-pair-block {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 0.8rem;
+}
+
+.dashboard-pair-title {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-align: center;
+    margin-top: 2rem;
+    line-height: 1.2;
+    font-weight: 700;
+}
+
+.dashboard-pair-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.7rem;
+}
+
+.dashboard-pair-col {
+    display: grid;
+    grid-template-rows: repeat(6, 40px);
+    gap: 0.45rem;
+}
+
+.dashboard-seat-node {
+    border-radius: 8px;
+    border: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.dashboard-seat-node.available {
+    background: #37c57e;
+    color: #fff;
+    border-color: #2d8f57;
+}
+
+.dashboard-seat-node.reserved {
+    background: #2081c4;
+    color: #fff;
+    border-color: #1a6ba3;
+}
+
+.dashboard-seat-node.maintenance {
+    background: #ffa500;
+    color: #fff;
+    border-color: #e69500;
+}
+
+.dashboard-seat-node.empty {
+    background: #eef1f4;
+    color: #6c757d;
+    border-color: #d4dbe1;
+    border-style: dashed;
+}
+
+.dashboard-layout-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.dashboard-layout-legend span {
+    font-size: 0.85rem;
+}
+
+.layout-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    margin-right: 0.35rem;
+    vertical-align: -1px;
 }
 
 .border-right {
