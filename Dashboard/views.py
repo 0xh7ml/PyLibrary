@@ -45,6 +45,31 @@ def home(request):
     available_pcs = canonical_seats.filter(status='Available').count()
     in_use_pcs = canonical_seats.filter(status='Reserved').count()
     out_of_service_pcs = canonical_seats.filter(status='Maintenance').count()
+
+    active_sessions = ELibrarySession.objects.select_related('content_type', 'student', 'seat').filter(
+        status='Active',
+        end_time__isnull=True,
+        seat__isnull=False,
+    )
+    active_session_map = {}
+    for session in active_sessions:
+        user_obj = session.user if session.user else session.student
+        active_session_map[session.seat_id] = {
+            'name': getattr(user_obj, 'name', ''),
+            'id_no': getattr(user_obj, 'id_no', ''),
+        }
+
+    dashboard_seats_layout = []
+    for seat in canonical_seats.order_by('layout_slot', 'pc_no').values('id', 'pc_no', 'status', 'layout_slot'):
+        session_info = active_session_map.get(seat['id'], {})
+        dashboard_seats_layout.append({
+            'id': seat['id'],
+            'pc_no': seat['pc_no'],
+            'status': seat['status'],
+            'layout_slot': seat['layout_slot'],
+            'reserved_user_name': session_info.get('name', ''),
+            'reserved_user_id': session_info.get('id_no', ''),
+        })
     
     # PC Usage Analytics for last 7 days
     usage_data = []
@@ -70,6 +95,8 @@ def home(request):
     week_labels = [day['date'] for day in usage_data]
     week_data = [day['count'] for day in usage_data]
     library_week_data = [day['count'] for day in library_usage_data]
+    week_data_total = sum(week_data)
+    library_week_data_total = sum(library_week_data)
     
     # Ticket Statistics (calculate before using in ticket_data)
     total_tickets = Ticket.objects.count()
@@ -97,6 +124,7 @@ def home(request):
         'available_pcs': available_pcs,
         'in_use_pcs': in_use_pcs,
         'out_of_service_pcs': out_of_service_pcs,
+        'dashboard_seats_layout': dashboard_seats_layout,
         
         # Ticket Statistics
         'total_tickets': total_tickets,
@@ -110,6 +138,8 @@ def home(request):
         'week_labels': week_labels,
         'week_data': week_data,
         'library_week_data': library_week_data,
+        'week_data_total': week_data_total,
+        'library_week_data_total': library_week_data_total,
         'ticket_labels': ticket_labels,
         'ticket_data': ticket_data,
         
@@ -139,7 +169,7 @@ def student_list(request):
                 if is_ajax:
                     return JsonResponse({'status': 'error', 'message': error_msg}, status=400)
                 messages.error(request, error_msg)
-                return redirect('dashboard:student_list')
+                return redirect('student_list')
             
             student = Student.objects.get(id=student_id)
             
@@ -193,7 +223,7 @@ def student_list(request):
                 return JsonResponse({'status': 'error', 'message': error_msg}, status=500)
             messages.error(request, error_msg)
         
-        return redirect('dashboard:student_list')
+        return redirect('student_list')
     
     # Handle filtering
     # Filter by block status
