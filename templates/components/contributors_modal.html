@@ -119,14 +119,14 @@
                 </div>
             </div>
             <div class="modal-footer justify-content-end">
-                <button type="button" class="btn btn-secondary" onclick="closeContributorsModal()">Close</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" data-bs-dismiss="modal" onclick="closeContributorsModal()">Close</button>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    .avatar-img {
+    #contributorsModal .avatar-img {
         width: 100px;
         height: 100px;
         border-radius: 50%;
@@ -134,7 +134,7 @@
         border: 3px solid #667eea;
         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
     }
-    .avatar-circle {
+    #contributorsModal .avatar-circle {
         width: 100px;
         height: 100px;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -143,15 +143,15 @@
         align-items: center;
         justify-content: center;
     }
-    .avatar-circle .initials {
+    #contributorsModal .avatar-circle .initials {
         color: white;
         font-size: 1.8rem;
         font-weight: 600;
     }
-    .card {
+    #contributorsModal .card {
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .card:hover {
+    #contributorsModal .card:hover {
         transform: translateY(-5px);
         box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
     }

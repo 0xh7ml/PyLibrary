@@ -13,14 +13,58 @@
 {% include "components/contributors_modal.html" %}
 
 <script>
+    function showWithBootstrap(modalElement) {
+        if (!window.bootstrap || !window.bootstrap.Modal) {
+            return false;
+        }
+
+        var ModalApi = window.bootstrap.Modal;
+        if (typeof ModalApi.getOrCreateInstance === 'function') {
+            ModalApi.getOrCreateInstance(modalElement).show();
+            return true;
+        }
+
+        if (typeof ModalApi.getInstance === 'function') {
+            var existing = ModalApi.getInstance(modalElement);
+            if (existing && typeof existing.show === 'function') {
+                existing.show();
+                return true;
+            }
+        }
+
+        var created = new ModalApi(modalElement);
+        if (created && typeof created.show === 'function') {
+            created.show();
+            return true;
+        }
+
+        return false;
+    }
+
+    function hideWithBootstrap(modalElement) {
+        if (!window.bootstrap || !window.bootstrap.Modal) {
+            return false;
+        }
+
+        var ModalApi = window.bootstrap.Modal;
+        if (typeof ModalApi.getInstance === 'function') {
+            var existing = ModalApi.getInstance(modalElement);
+            if (existing && typeof existing.hide === 'function') {
+                existing.hide();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     function openContributorsModal() {
         var modalElement = document.getElementById('contributorsModal');
         if (!modalElement) {
             return;
         }
 
-        if (window.bootstrap && window.bootstrap.Modal) {
-            window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
+        if (showWithBootstrap(modalElement)) {
             return;
         }
 
@@ -39,11 +83,7 @@
             return;
         }
 
-        if (window.bootstrap && window.bootstrap.Modal) {
-            var modalInstance = window.bootstrap.Modal.getInstance(modalElement);
-            if (modalInstance) {
-                modalInstance.hide();
-            }
+        if (hideWithBootstrap(modalElement)) {
             return;
         }
 
