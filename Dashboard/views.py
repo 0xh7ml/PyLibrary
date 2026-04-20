@@ -70,6 +70,8 @@ def home(request):
     week_labels = [day['date'] for day in usage_data]
     week_data = [day['count'] for day in usage_data]
     library_week_data = [day['count'] for day in library_usage_data]
+    week_data_total = sum(week_data)
+    library_week_data_total = sum(library_week_data)
     
     # Ticket Statistics (calculate before using in ticket_data)
     total_tickets = Ticket.objects.count()
@@ -110,6 +112,8 @@ def home(request):
         'week_labels': week_labels,
         'week_data': week_data,
         'library_week_data': library_week_data,
+        'week_data_total': week_data_total,
+        'library_week_data_total': library_week_data_total,
         'ticket_labels': ticket_labels,
         'ticket_data': ticket_data,
         
