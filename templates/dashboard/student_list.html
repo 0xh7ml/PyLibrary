@@ -130,7 +130,7 @@
                         <button type="submit" class="btn btn-primary btn-sm">
                             <i class="fas fa-search"></i> Filter
                         </button>
-                        <a href="{% url 'dashboard:student_list' %}" class="btn btn-secondary btn-sm ml-2">
+                        <a href="{% url 'student_list' %}" class="btn btn-secondary btn-sm ml-2">
                             <i class="fas fa-redo"></i> Reset
                         </a>
                     </form>
@@ -446,7 +446,7 @@ document.getElementById('confirmBlockBtn').addEventListener('click', function() 
     const originalText = this.innerHTML;
     this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
     
-    axios.post('{% url "dashboard:student_list" %}', {
+    axios.post('{% url "student_list" %}', {
         action: 'block',
         student_id: studentId,
         block_reason: blockReason
@@ -499,7 +499,7 @@ document.getElementById('confirmUnblockBtn').addEventListener('click', function(
     const originalText = this.innerHTML;
     this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
     
-    axios.post('{% url "dashboard:student_list" %}', {
+    axios.post('{% url "student_list" %}', {
         action: 'unblock',
         student_id: studentId
     }, {

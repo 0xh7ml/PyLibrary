@@ -169,7 +169,7 @@ def student_list(request):
                 if is_ajax:
                     return JsonResponse({'status': 'error', 'message': error_msg}, status=400)
                 messages.error(request, error_msg)
-                return redirect('dashboard:student_list')
+                return redirect('student_list')
             
             student = Student.objects.get(id=student_id)
             
@@ -223,7 +223,7 @@ def student_list(request):
                 return JsonResponse({'status': 'error', 'message': error_msg}, status=500)
             messages.error(request, error_msg)
         
-        return redirect('dashboard:student_list')
+        return redirect('student_list')
     
     # Handle filtering
     # Filter by block status
