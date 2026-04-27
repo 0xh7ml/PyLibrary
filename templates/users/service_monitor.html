@@ -52,12 +52,89 @@
             padding: 2rem 1rem;
         }
 
+        .service-stack {
+            width: 100%;
+            max-width: 920px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+            align-items: center;
+        }
+
         .service-card {
             max-width: 500px;
             width: 100%;
             border: none;
             border-radius: 1rem;
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+
+        .service-card .card-body {
+            padding: 2.25rem 2.25rem !important;
+        }
+
+        .pc-visual-card {
+            width: 100%;
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .pc-visual-card .card-body {
+            padding: 0.85rem 0.85rem 0.6rem !important;
+            min-height: 320px;
+        }
+
+        #servicePublicPcLayout {
+            min-height: 290px;
+        }
+
+        #servicePublicPcLayout .seat-info,
+        #servicePublicPcLayout .status-legend {
+            display: none !important;
+        }
+
+        #servicePublicPcLayout .seat-selection-container {
+            padding: 0 !important;
+            background: transparent !important;
+        }
+
+        #servicePublicPcLayout .library-visual {
+            min-width: 700px !important;
+            gap: 1rem !important;
+        }
+
+        #servicePublicPcLayout .pair-block {
+            padding: 0.65rem !important;
+        }
+
+        #servicePublicPcLayout .pair-col {
+            grid-template-rows: repeat(6, 34px) !important;
+            gap: 0.35rem !important;
+        }
+
+        #servicePublicPcLayout .seat-node {
+            font-size: 0.78rem;
+            border-radius: 7px;
+        }
+
+        #servicePublicPcLayout .layout-legend {
+            display: flex !important;
+            justify-content: center;
+            align-items: center;
+            gap: 1.2rem;
+            margin-top: 0.55rem !important;
+            padding-top: 0.1rem;
+        }
+
+        #servicePublicPcLayout .layout-legend span {
+            font-size: 0.8rem;
+            color: #4b5563;
+        }
+
+        #servicePublicPcLayout .pair-title {
+            display: none !important;
         }
 
         .service-icon {
@@ -181,6 +258,45 @@
                 margin: 1rem;
             }
 
+            .service-card .card-body {
+                padding: 1.7rem 1.35rem !important;
+            }
+
+            .pc-visual-card {
+                margin: 0 1rem 1rem;
+            }
+
+            .pc-visual-card .card-body {
+                min-height: 265px;
+                padding: 0.75rem !important;
+            }
+
+            .pc-visual-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .pc-visual-meta {
+                text-align: left;
+                font-size: 0.78rem;
+            }
+
+            #servicePublicPcLayout .library-visual {
+                min-width: 560px !important;
+            }
+
+            #servicePublicPcLayout {
+                min-height: 235px;
+            }
+
+            #servicePublicPcLayout .pair-col {
+                grid-template-rows: repeat(6, 30px) !important;
+            }
+
+            #servicePublicPcLayout .seat-node {
+                font-size: 0.72rem;
+            }
+
             .iubat-corner-logo {
                 width: 60px;
                 top: 0.75rem;
@@ -197,55 +313,59 @@
     <img class="iubat-corner-logo" src="{% static 'img/logo-iubat.png' %}" alt="IUBAT Logo">
 
     <main class="main-content">
-        <div class="card service-card">
-            <div class="card-body p-5 text-center">
-                <!-- Service Icon -->
-                <div class="logo-wrapper">
-                   <img src="{% static 'img/logo.png' %}" alt="Library Logo" style="width: 100%; height: auto;">
+        <div class="service-stack">
+            <div class="card service-card">
+                <div class="card-body p-5 text-center">
+                    <!-- Service Icon -->
+                    <div class="logo-wrapper">
+                       <img src="{% static 'img/logo.png' %}" alt="Library Logo" style="width: 100%; height: auto;">
+                    </div>
+
+                    <!-- Title and Description -->
+                    <h2 class="h2 fw-bold mb-3">E-Library Entry Station</h2>
+                    <p class="text-muted mb-4">
+                        Scan your ID to exit or access library services. Use this station for quick check-outs and admin services.
+                    </p>
+
+                    <!-- Service Form -->
+                    <form id="serviceForm" method="POST">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="studentId" class="visually-hidden">Student/Faculty ID</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">
+                                    <i class="fas fa-id-card text-muted"></i>
+                                </span>
+                                <input type="hidden" id="service-type" name="service_type" value="elibrary">
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="studentId" 
+                                       name="student_id"
+                                       placeholder="Scan or Enter Student/Faculty ID" 
+                                       required 
+                                       autofocus 
+                                       autocomplete="off"
+                                       spellcheck="false">
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                <i class="fas fa-sign-out-alt me-2"></i>
+                                <span id="btnText">Access Services / Exit</span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
+            </div>
 
-                <!-- Title and Description -->
-                <h2 class="h2 fw-bold mb-3">E-Library Entry Station</h2>
-                <p class="text-muted mb-4">
-                    Scan your ID to exit or access library services. Use this station for quick check-outs and admin services.
-                </p>
-
-                <!-- Service Form -->
-                <form id="serviceForm" method="POST">
-                    {% csrf_token %}
-                    <div class="mb-4">
-                        <label for="studentId" class="visually-hidden">Student/Faculty ID</label>
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text">
-                                <i class="fas fa-id-card text-muted"></i>
-                            </span>
-                            <input type="hidden" id="service-type" name="service_type" value="elibrary">
-                            <input type="text" 
-                                   class="form-control" 
-                                   id="studentId" 
-                                   name="student_id"
-                                   placeholder="Scan or Enter Student/Faculty ID" 
-                                   required 
-                                   autofocus 
-                                   autocomplete="off"
-                                   spellcheck="false">
+            <div class="card pc-visual-card">
+                <div class="card-body p-4">
+                    <div id="servicePublicPcLayout" class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
                     </div>
-                    
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
-                            <i class="fas fa-sign-out-alt me-2"></i>
-                            <span id="btnText">Access Services / Exit</span>
-                        </button>
-                    </div>
-                </form>
-
-                <!-- Submit Ticket Button -->
-                <div class="mt-4 text-center">
-                    <button type="button" class="btn btn-outline-warning btn-lg" id="submitTicketBtn">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        Report Issue
-                    </button>
                 </div>
             </div>
         </div>
