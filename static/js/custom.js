@@ -796,8 +796,19 @@ function showSeatSelectionModal(studentName, studentId) {
  * Convert plain seat grid to a visual paired-column library layout.
  * Keeps existing seat selection behavior unchanged.
  */
-function renderSeatLayoutAsLibraryVisual() {
-    const seatLayoutRoot = document.getElementById('seatLayout');
+function renderSeatLayoutAsLibraryVisual(rootElementOrId, options) {
+    const config = options || {};
+    const readOnly = config.readOnly === true;
+    let seatLayoutRoot = null;
+
+    if (typeof rootElementOrId === 'string' && rootElementOrId) {
+        seatLayoutRoot = document.getElementById(rootElementOrId);
+    } else if (rootElementOrId && rootElementOrId.nodeType === 1) {
+        seatLayoutRoot = rootElementOrId;
+    } else {
+        seatLayoutRoot = document.getElementById('seatLayout');
+    }
+
     if (!seatLayoutRoot) return;
 
     const oldGrid = seatLayoutRoot.querySelector('.seats-grid');
@@ -842,8 +853,10 @@ function renderSeatLayoutAsLibraryVisual() {
             .seat-node.available { background: #37c57e; color: #fff; border-color: #2d8f57; cursor: pointer; }
             .seat-node.reserved { background: #2081c4; color: #fff; border-color: #1a6ba3; cursor: not-allowed; }
             .seat-node.maintenance { background: #ffa500; color: #fff; border-color: #e69500; cursor: not-allowed; }
+            .seat-node.read-only.available { cursor: default; }
             .seat-node.empty { background: #eef1f4; color: #6c757d; border-color: #d4dbe1; border-style: dashed; }
             .seat-node:hover.available { transform: translateY(-1px); }
+            .seat-node.read-only:hover.available { transform: none; }
             .layout-legend { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; }
             .layout-legend span { font-size: 0.85rem; }
             .layout-dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 0.35rem; vertical-align: -1px; }
@@ -919,12 +932,15 @@ function renderSeatLayoutAsLibraryVisual() {
         }
 
         node.classList.add(seat.status);
+        if (readOnly) {
+            node.classList.add('read-only');
+        }
         node.setAttribute('data-seat-id', seat.seatId);
         node.setAttribute('data-seat-number', seat.seatNumber);
         node.setAttribute('data-status', seat.status);
         node.textContent = seat.seatNumber;
 
-        if (seat.status === 'available') {
+        if (seat.status === 'available' && !readOnly) {
             node.setAttribute('onclick', 'selectSeatElement(this)');
         }
 
@@ -966,6 +982,11 @@ function selectSeat(studentId, seatId, seatNumber) {
             
             // Show success toast
             showToast(`✅ ${response.data.message}`, 'success');
+
+            // Keep service monitor public visualization in sync immediately.
+            if (typeof window.refreshServicePublicPcLayout === 'function') {
+                window.refreshServicePublicPcLayout();
+            }
             
             // Clear the form and refocus input for next scan (after modal is closed)
             setTimeout(() => {
@@ -1012,10 +1033,87 @@ function initializeServiceMonitor() {
     optimizeForBarcode('studentId', 'serviceForm', { autoSubmitLength: 8 });
     maintainInputFocus('studentId');
     const serviceForm = document.getElementById('serviceForm');
+    const servicePublicPcLayout = document.getElementById('servicePublicPcLayout');
+    const servicePcStats = document.getElementById('servicePcStats');
+    const servicePcLastSync = document.getElementById('servicePcLastSync');
+    let servicePublicPcPollTimer = null;
+
+    function updateServicePublicPcSummary(root) {
+        if (!servicePcStats || !root) {
+            return;
+        }
+
+        const allNodes = Array.from(root.querySelectorAll('.seat-node'));
+        const available = allNodes.filter((n) => n.classList.contains('available')).length;
+        const reserved = allNodes.filter((n) => n.classList.contains('reserved')).length;
+        const maintenance = allNodes.filter((n) => n.classList.contains('maintenance')).length;
+        servicePcStats.textContent = `Available: ${available} | Reserved: ${reserved} | Maintenance: ${maintenance}`;
+    }
+
+    function renderServiceReadOnlyPcLayout(htmlText) {
+        if (!servicePublicPcLayout) {
+            return;
+        }
+
+        servicePublicPcLayout.innerHTML = htmlText;
+        const hasGrid = servicePublicPcLayout.querySelector('.seats-grid');
+        if (!hasGrid) {
+            servicePublicPcLayout.innerHTML = '<div class="alert alert-warning mb-0">PC layout is unavailable right now.</div>';
+            if (servicePcStats) {
+                servicePcStats.textContent = 'Layout unavailable';
+            }
+            return;
+        }
+
+        renderSeatLayoutAsLibraryVisual('servicePublicPcLayout', { readOnly: true });
+        updateServicePublicPcSummary(servicePublicPcLayout);
+    }
+
+    function loadServicePublicPcLayout() {
+        if (!servicePublicPcLayout) {
+            return;
+        }
+
+        axios.get('/pc-layout/', { timeout: 7000 })
+            .then(function(response) {
+                renderServiceReadOnlyPcLayout(response.data);
+                if (servicePcLastSync) {
+                    servicePcLastSync.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+                }
+            })
+            .catch(function() {
+                servicePublicPcLayout.innerHTML = '<div class="alert alert-danger mb-0">Could not load PC status.</div>';
+                if (servicePcStats) {
+                    servicePcStats.textContent = 'Load failed';
+                }
+            });
+    }
+
+            // Expose a safe refresh hook so other service actions can trigger immediate sync.
+            window.refreshServicePublicPcLayout = loadServicePublicPcLayout;
+
+    function startServicePublicPcPolling() {
+        if (!servicePublicPcLayout) {
+            return;
+        }
+
+        loadServicePublicPcLayout();
+        if (servicePublicPcPollTimer) {
+            clearInterval(servicePublicPcPollTimer);
+        }
+
+        servicePublicPcPollTimer = setInterval(function() {
+            if (document.visibilityState === 'visible') {
+                loadServicePublicPcLayout();
+            }
+        }, 15000);
+    }
 
     const serviceToastContainer = document.getElementById('toastContainer') || createToastContainer();
     serviceToastContainer.classList.remove('end-0');
     serviceToastContainer.classList.add('entry-monitor-toast');
+
+    startServicePublicPcPolling();
     
     // Initialize ticket submission functionality
     initializeTicketSubmission();
@@ -1091,6 +1189,9 @@ function initializeServiceMonitor() {
                     showMessage(message, 'info');
                     // Clear localStorage on exit
                     localStorage.removeItem('currentStudentId');
+
+                    // User just logged out from an e-library PC; refresh visualization instantly.
+                    loadServicePublicPcLayout();
                 }
                 
                 // Clear form
@@ -1102,6 +1203,9 @@ function initializeServiceMonitor() {
                 showMessage(errorMessage, 'error');
                 studentIdInput.select();
             }
+
+            // Keep visualization up-to-date after any successful service response.
+            loadServicePublicPcLayout();
         })
         .catch(function(error) {
             console.error('Service error:', error);
