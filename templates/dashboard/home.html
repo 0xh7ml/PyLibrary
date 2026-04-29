@@ -173,40 +173,36 @@
 
 <!-- Charts Section -->
 <div class="row">
-    <!-- Left Column - Ticket Status Pie Chart -->
+    <!-- Left Column - Student Population Pie Chart -->
     <div class="col-lg-4 col-md-12 mb-4">
         <div class="card h-100">
             <div class="card-header">
                 <h5 class="card-title mb-0">
-                    <i class="fas fa-chart-pie text-warning"></i> Ticket Status Distribution
+                    <i class="fas fa-chart-pie text-warning"></i> Student Population Distribution
                 </h5>
             </div>
             <div class="card-body d-flex flex-column">
                 <div class="chart-container flex-grow-1" style="height: 350px;">
-                    <canvas id="ticketChart"></canvas>
+                    <canvas id="populationChart"></canvas>
                 </div>
-                <!-- Ticket Summary Stats -->
+                <!-- Population Summary Stats -->
                 <div class="row mt-3">
                     <div class="col-6 text-center">
                         <div class="border-right">
-                            <strong class="text-danger">{{ open_tickets }}</strong><br>
-                            <small class="text-muted">Open Tickets</small>
+                            <strong class="text-primary">{{ total_students_db }}</strong><br>
+                            <small class="text-muted">Students in DB</small>
                         </div>
                     </div>
                     <div class="col-6 text-center">
-                        <strong class="text-info">{{ total_tickets }}</strong><br>
-                        <small class="text-muted">Total Tickets</small>
+                        <strong class="text-success">{{ total_unique_users }}</strong><br>
+                        <small class="text-muted">Distinct Users</small>
                     </div>
                 </div>
-                <!-- Fixed height alert area -->
-                <div style="min-height: 60px; margin-top: 15px;">
-                    {% if today_tickets > 0 %}
-                    <div class="alert alert-info mb-0">
-                        <i class="fas fa-info-circle"></i>
-                        <strong>{{ today_tickets }}</strong> new ticket{{ today_tickets|pluralize }} created today
+                    <div class="row mt-2">
+                        <div class="col-12 text-center">
+                            <small class="text-muted">Central Library Entries in {{ current_date.year }}: {{ main_library_entries_current_year }}</small>
+                        </div>
                     </div>
-                    {% endif %}
-                </div>
             </div>
         </div>
     </div>
@@ -390,19 +386,19 @@ $(document).ready(function() {
 
     renderDashboardLibraryVisual();
 
-    // Ticket Status Pie Chart
-    const ticketCtx = document.getElementById('ticketChart').getContext('2d');
+    // Student Population Pie Chart
+    const populationCtx = document.getElementById('populationChart').getContext('2d');
     
     // Define colors in frontend
-    const ticketColors = ['#dc3545', '#ffc107', '#28a745', '#6c757d']; // Red, Yellow, Green, Gray
+    const populationColors = ['#0d6efd', '#198754']; // Blue, Green
     
-    const ticketChart = new Chart(ticketCtx, {
+    const populationChart = new Chart(populationCtx, {
         type: 'doughnut',
         data: {
-            labels: {{ ticket_labels|safe }},
+            labels: {{ population_labels|safe }},
             datasets: [{
-                data: {{ ticket_data|safe }},
-                backgroundColor: ticketColors,
+                data: {{ population_data|safe }},
+                backgroundColor: populationColors,
                 borderWidth: 2,
                 borderColor: '#ffffff',
                 hoverBorderWidth: 3,
