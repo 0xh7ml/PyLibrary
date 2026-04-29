@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from Library.models import LibraryEntry, ELibrarySession, ElibrarySeat, Student
 from Library.utils.pc_utils import canonical_elibrary_seats, cleanup_duplicate_elibrary_seats
 from Tickets.models import Ticket
+from User.views import enforce_midnight_session_policy
 
 # Create your views here.
 @login_required
@@ -16,6 +17,8 @@ def home(request):
     # Get current datetime
     now = timezone.now()
     today = now.date()
+
+    enforce_midnight_session_policy()
     
     # Live Library Statistics
     # Students currently in library (entered but not exited)
