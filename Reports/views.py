@@ -23,12 +23,16 @@ def _build_monthly_rows(queryset, date_field_name, year_int, month_int, departme
 
     daily_department_counts = defaultdict(lambda: defaultdict(int))
     daily_totals = defaultdict(int)
+    monthly_department_totals = defaultdict(int)
+    monthly_total_students = 0
 
     for record in filtered_records:
         record_date = getattr(record, date_field_name).date()
         department_name = record.user_department_name or 'Unknown'
         daily_totals[record_date] += 1
         daily_department_counts[record_date][department_name] += 1
+        monthly_department_totals[department_name] += 1
+        monthly_total_students += 1
 
     rows = []
     days_in_month = monthrange(year_int, month_int)[1]
@@ -46,7 +50,15 @@ def _build_monthly_rows(queryset, date_field_name, year_int, month_int, departme
             'department_cells': department_cells,
         })
 
-    return rows, filtered_records.count()
+    department_totals = [
+        {
+            'name': department_name,
+            'value': monthly_department_totals.get(department_name, 0),
+        }
+        for department_name in department_names
+    ]
+
+    return rows, filtered_records.count(), monthly_total_students, department_totals
 
 # Create your views here.
 @login_required
@@ -78,7 +90,7 @@ def elibrary_report_view(request):
         except ValueError:
             is_monthly_report = False
         else:
-            monthly_rows, monthly_total_count = _build_monthly_rows(
+            monthly_rows, monthly_total_count, monthly_total_students, monthly_department_totals = _build_monthly_rows(
                 queryset,
                 'start_time',
                 monthly_year,
@@ -89,6 +101,8 @@ def elibrary_report_view(request):
                 'data': monthly_rows,
                 'department_columns': department_names,
                 'total_count': monthly_total_count,
+                'monthly_total_students': monthly_total_students,
+                'monthly_department_totals': monthly_department_totals,
                 'report_scope_label': f'{month_name[monthly_month]} {monthly_year}',
                 'is_monthly_report': True,
                 'filter_values': {
@@ -198,7 +212,7 @@ def library_report_view(request):
         except ValueError:
             is_monthly_report = False
         else:
-            monthly_rows, monthly_total_count = _build_monthly_rows(
+            monthly_rows, monthly_total_count, monthly_total_students, monthly_department_totals = _build_monthly_rows(
                 queryset,
                 'entry_time',
                 monthly_year,
@@ -209,6 +223,8 @@ def library_report_view(request):
                 'data': monthly_rows,
                 'department_columns': department_names,
                 'total_count': monthly_total_count,
+                'monthly_total_students': monthly_total_students,
+                'monthly_department_totals': monthly_department_totals,
                 'report_scope_label': f'{month_name[monthly_month]} {monthly_year}',
                 'is_monthly_report': True,
                 'filter_values': {

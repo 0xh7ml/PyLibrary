@@ -122,6 +122,15 @@
                         </tr>
                         {% endfor %}
                     </tbody>
+                    <tfoot class="table-secondary text-center fw-bold">
+                        <tr>
+                            <td>Total</td>
+                            <td>{{ monthly_total_students }}</td>
+                            {% for cell in monthly_department_totals %}
+                                <td>{{ cell.value }}</td>
+                            {% endfor %}
+                        </tr>
+                    </tfoot>
                 </table>
                 {% else %}
                 <table id="dataTable" class="table table-bordered text-nowrap">
