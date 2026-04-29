@@ -638,6 +638,7 @@ def submit_ticket_handler(request):
 
 def pc_layout(request):
     """Render the PC layout for seat selection"""
+    enforce_midnight_session_policy()
     cleanup_duplicate_elibrary_seats()
     all_seats = canonical_elibrary_seats().order_by('layout_slot', 'pc_no')
     available_seats = all_seats.filter(status='Available')
