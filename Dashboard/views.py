@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from Library.models import LibraryEntry, ELibrarySession, ElibrarySeat, Student
 from Library.utils.pc_utils import canonical_elibrary_seats, cleanup_duplicate_elibrary_seats
 from Tickets.models import Ticket
+from User.views import enforce_midnight_session_policy
 
 # Create your views here.
 @login_required
@@ -16,6 +17,23 @@ def home(request):
     # Get current datetime
     now = timezone.now()
     today = now.date()
+
+    enforce_midnight_session_policy()
+
+    # Population analytics for dashboard pie chart
+    total_students_db = Student.objects.count()
+    main_library_entries_current_year = LibraryEntry.objects.filter(
+        entry_time__year=today.year
+    ).count()
+
+    unique_user_keys = set()
+    for entry in LibraryEntry.objects.values('content_type_id', 'object_id', 'student_id').distinct():
+        if entry['student_id']:
+            unique_user_keys.add(('student', entry['student_id']))
+        elif entry['content_type_id'] and entry['object_id']:
+            unique_user_keys.add((entry['content_type_id'], entry['object_id']))
+
+    total_unique_users = len(unique_user_keys)
     
     # Live Library Statistics
     # Students currently in library (entered but not exited)
@@ -118,6 +136,9 @@ def home(request):
         'students_using_elibrary': students_using_elibrary,
         'main_library_only': main_library_only,
         'todays_total_entry': todays_total_entry,
+        'total_students_db': total_students_db,
+        'total_unique_users': total_unique_users,
+        'main_library_entries_current_year': main_library_entries_current_year,
         
         # PC Status
         'total_pcs': total_pcs,
@@ -142,6 +163,8 @@ def home(request):
         'library_week_data_total': library_week_data_total,
         'ticket_labels': ticket_labels,
         'ticket_data': ticket_data,
+        'population_labels': ['Students in DB', 'Distinct Users'],
+        'population_data': [total_students_db, total_unique_users],
         
         # Additional stats
         'current_date': today,

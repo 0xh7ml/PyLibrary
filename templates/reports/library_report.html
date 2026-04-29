@@ -90,10 +90,13 @@
     </div>
     <!-- Data Table -->
     <div class="card" id="libraryReportSection">
-        <div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
             <span class="text-muted">
                 Total {{ report_scope_label }} Records: <strong>{{ total_count }}</strong>
             </span>
+            <button type="button" class="btn btn-secondary" id="printLibraryReport">
+                <i class="fas fa-print me-1"></i>Print Report
+            </button>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -119,6 +122,15 @@
                         </tr>
                         {% endfor %}
                     </tbody>
+                    <tfoot class="table-secondary text-center fw-bold">
+                        <tr>
+                            <td>Total</td>
+                            <td>{{ monthly_total_students }}</td>
+                            {% for cell in monthly_department_totals %}
+                                <td>{{ cell.value }}</td>
+                            {% endfor %}
+                        </tr>
+                    </tfoot>
                 </table>
                 {% else %}
                 <table id="dataTable" class="table table-bordered text-nowrap">
@@ -175,11 +187,6 @@
                 </table>
                 {% endif %}
             </div>    
-        </div>
-        <div class="card-footer d-flex justify-content-end align-items-center">
-            <button type="button" class="btn btn-secondary" id="printLibraryReport">
-                <i class="fas fa-print me-1"></i>Print Report
-            </button>
         </div>
     </div>
 </div>
