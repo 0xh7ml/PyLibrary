@@ -128,7 +128,7 @@ EMAIL_USE_SSL = env('EMAIL_USE_SSL', default=False, cast=bool)
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER or 'noreply@example.com')
-ADMIN_EMAIL = env('ADMIN_EMAIL', default='admin@example.com')
+ADMIN_EMAIL = env('ADMIN_EMAIL', default='info@iubat.org')
 CSRF_ALLOWED_ORIGINS = [
     'http://localhost:8000',
     'https://*.itsaikat.com',
