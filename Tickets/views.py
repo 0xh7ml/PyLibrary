@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 # Importing the Ticket model
 from .models import Ticket
 from .utils import send_ticket_status_update_email
+from .utils import send_ticket_created_email, send_ticket_confirmation_email
 
 # Create your views here.
 @login_required
@@ -18,7 +19,9 @@ def ticket_add(request):
     if request.method == 'POST':
         issue_type = request.POST.get('issue_type')
         description = request.POST.get('description')
-        Ticket.objects.create(issue_type=issue_type, description=description)
+        ticket = Ticket.objects.create(issue_type=issue_type, description=description)
+        send_ticket_created_email(ticket)
+        send_ticket_confirmation_email(ticket)
         return redirect(reverse_lazy('ticket_list'))
     return render(request, 'tickets/ticket_add.html')
 

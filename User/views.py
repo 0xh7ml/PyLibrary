@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 from Library.models import Student, Faculty, LibraryEntry, ELibrarySession, ElibrarySeat, Department
 from Library.utils.pc_utils import canonical_elibrary_seats, cleanup_duplicate_elibrary_seats
 from Tickets.models import Ticket
-from Tickets.utils import send_ticket_created_email
+from Tickets.utils import send_ticket_created_email, send_ticket_confirmation_email
 import json
 import logging
 import re
@@ -618,6 +618,9 @@ def submit_ticket_handler(request):
 
             # Send email notification to admin
             send_ticket_created_email(ticket)
+            
+            # Send confirmation email to the user
+            send_ticket_confirmation_email(ticket)
             
             return JsonResponse({
                 'status': 'success',
