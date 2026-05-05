@@ -88,3 +88,51 @@ def send_ticket_status_update_email(ticket):
         logger.info(f'Status update email sent to {user_email} for ticket #{ticket.id}')
     except Exception as e:
         logger.error(f'Failed to send status update email for ticket #{ticket.id}: {str(e)}')
+
+
+def send_ticket_confirmation_email(ticket):
+    """
+    Send a confirmation email to the user/student who submitted the ticket.
+    Confirms that their ticket has been received and provides the ticket ID.
+    """
+    try:
+        # Get the user's email from the generic FK or legacy field
+        user_email = None
+        if ticket.created_by and hasattr(ticket.created_by, 'email'):
+            user_email = ticket.created_by.email
+        elif ticket.issued_by and hasattr(ticket.issued_by, 'email'):
+            user_email = ticket.issued_by.email
+
+        if not user_email:
+            logger.warning(
+                f'No email found for ticket #{ticket.id} creator, skipping confirmation email.'
+            )
+            return
+
+        subject = f'Ticket Submitted Successfully - #{ticket.id}'
+
+        body = (
+            f"Hello {ticket.creator_name},\n\n"
+            f"Thank you for submitting your issue. Your ticket has been received successfully.\n\n"
+            f"Ticket Details:\n"
+            f"  Ticket ID: #{ticket.id}\n"
+            f"  Title: {ticket.title}\n"
+            f"  Issue Type: {ticket.get_issue_type_display()}\n"
+            f"  Status: {ticket.get_status_display()}\n\n"
+            f"We will review your issue and get back to you shortly.\n"
+            f"Please keep your Ticket ID for future reference.\n\n"
+            f"If you have any questions, please contact the library admin.\n\n"
+            f"Best regards,\n"
+            f"PyLibrary Team"
+        )
+
+        send_mail(
+            subject=subject,
+            message=body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user_email],
+            fail_silently=False,
+        )
+        logger.info(f'Ticket confirmation email sent to {user_email} for ticket #{ticket.id}')
+    except Exception as e:
+        logger.error(f'Failed to send ticket confirmation email for ticket #{ticket.id}: {str(e)}')
