@@ -19,9 +19,10 @@ def canonical_lab_seats(base_queryset=None):
 
 
 def cleanup_duplicate_lab_seats():
-    """Merge duplicate PC rows onto one canonical seat and remove extras."""
+    """Merge duplicate PC rows onto one canonical seat and remove extras. Excludes empty spaces."""
     duplicate_pc_nos = (
-        LabSeat.objects.values('pc_no')
+        LabSeat.objects.filter(is_space=False).exclude(pc_no='')
+        .values('pc_no')
         .annotate(seat_count=Count('id'))
         .filter(seat_count__gt=1)
         .values_list('pc_no', flat=True)
@@ -29,7 +30,7 @@ def cleanup_duplicate_lab_seats():
 
     for pc_no in duplicate_pc_nos:
         with transaction.atomic():
-            seats = list(LabSeat.objects.filter(pc_no=pc_no).order_by('id'))
+            seats = list(LabSeat.objects.filter(is_space=False, pc_no=pc_no).order_by('id'))
             if len(seats) < 2:
                 continue
 

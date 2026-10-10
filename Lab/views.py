@@ -694,30 +694,42 @@ def lab_row_add_pc(request, row_id):
 @login_required
 @csrf_exempt
 def lab_row_add_space(request, row_id):
-    """Add an Empty Space (Aisle / Walkway) to the specified row"""
+    """Add one or more Empty Spaces (Aisle / Walkway) to the specified row"""
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
 
     row = get_object_or_404(LabRow, id=row_id)
-    if row.seats.count() >= 100:
-        return JsonResponse({'status': 'error', 'message': 'Maximum 100 items reached for this row.'}, status=400)
+    try:
+        count = int(request.POST.get('count', 1))
+        count = max(1, min(count, 50))
+    except (ValueError, TypeError):
+        count = 1
+
+    current_count = row.seats.count()
+    if current_count + count > 100:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Cannot add {count} spaces. Maximum 100 items reached for this row (currently {current_count}).'
+        }, status=400)
 
     max_col = row.seats.aggregate(Max('col_index'))['col_index__max'] or 0
-    next_col = max_col + 1
 
-    seat = LabSeat.objects.create(
-        row=row,
-        col_index=next_col,
-        is_space=True,
-        status='Available',
-        pc_no='',
-    )
+    new_seats = []
+    for _ in range(count):
+        max_col += 1
+        new_seats.append(LabSeat(
+            row=row,
+            col_index=max_col,
+            is_space=True,
+            status='Available',
+            pc_no='',
+        ))
+    LabSeat.objects.bulk_create(new_seats)
 
     return JsonResponse({
         'status': 'success',
-        'message': f'Empty space / walkway added to {row.name}!',
-        'seat_id': seat.id,
-        'col_index': seat.col_index,
+        'message': f'{count} empty space(s) / walkway added to {row.name}!',
+        'count': count,
     })
 
 
