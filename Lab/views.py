@@ -157,6 +157,7 @@ def lab_pc_layout_api(request):
             'row_number': r.row_number,
             'name': r.name or f"Row {r.row_number}",
             'items': items,
+            'pc_count': sum(1 for it in items if not it['is_space']),
         })
 
     active_pcs = LabSeat.objects.filter(is_space=False)

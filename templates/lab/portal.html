@@ -457,8 +457,7 @@
             align-items: center;
             text-align: center;
             gap: 0.35rem;
-            cursor: pointer;
-            transition: all 0.15s ease;
+            cursor: default;
             user-select: none;
         }
 
@@ -480,19 +479,10 @@
             text-transform: uppercase;
         }
 
-        .pc-tile:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-        }
-
         /* Available (Green) */
         .pc-tile.status-available {
             border-color: #86efac;
             background: #f0fdf4;
-        }
-        .pc-tile.status-available:hover {
-            border-color: #22c55e;
-            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
         }
         .pc-tile.status-available .tile-icon {
             color: #15803d;
@@ -519,7 +509,6 @@
         .pc-tile.status-maintenance {
             border-color: #fde68a;
             background: #fffbeb;
-            cursor: not-allowed;
             opacity: 0.8;
         }
         .pc-tile.status-maintenance .tile-icon {
@@ -530,11 +519,112 @@
             color: #92400e;
         }
 
-        /* Active Selected State */
-        .pc-tile.tile-selected {
-            border-color: var(--primary) !important;
-            background: #e7f1ff !important;
-            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25) !important;
+        /* Modal Interactive Workstation Selector */
+        .modal-rows-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 0.25rem;
+        }
+
+        .modal-bench-row {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .modal-bench-header {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.65rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-bench-items {
+            display: flex;
+            align-items: stretch;
+            gap: 0.65rem;
+            overflow-x: auto;
+            padding-bottom: 0.4rem;
+        }
+
+        .modal-pc-tile {
+            flex: 0 0 115px;
+            width: 115px;
+            background: #ffffff;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 0.3rem;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+
+        .modal-pc-tile.status-available {
+            border-color: #86efac;
+            background: #f0fdf4;
+            cursor: pointer;
+        }
+        .modal-pc-tile.status-available:hover {
+            border-color: #16a34a;
+            background: #dcfce7;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
+        }
+        .modal-pc-tile.status-available .modal-tile-icon { color: #16a34a; font-size: 1.35rem; }
+        .modal-pc-tile.status-available .modal-tile-badge { background: #dcfce7; color: #15803d; font-size: 0.68rem; font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 4px; }
+
+        .modal-pc-tile.status-reserved {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+        .modal-pc-tile.status-reserved .modal-tile-icon { color: #64748b; font-size: 1.35rem; }
+        .modal-pc-tile.status-reserved .modal-tile-badge { background: #e2e8f0; color: #475569; font-size: 0.68rem; font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 4px; }
+
+        .modal-pc-tile.status-maintenance {
+            border-color: #fde68a;
+            background: #fffbeb;
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+        .modal-pc-tile.status-maintenance .modal-tile-icon { color: #d97706; font-size: 1.35rem; }
+        .modal-pc-tile.status-maintenance .modal-tile-badge { background: #fef3c7; color: #92400e; font-size: 0.68rem; font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 4px; }
+
+        .modal-pc-tile.tile-selected-modal {
+            border-color: #0d6efd !important;
+            background: #eff6ff !important;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.35) !important;
+            transform: translateY(-3px);
+        }
+        .modal-pc-tile.tile-selected-modal .modal-tile-icon { color: #0d6efd !important; }
+        .modal-pc-tile.tile-selected-modal .modal-tile-badge { background: #0d6efd !important; color: #ffffff !important; }
+
+        .modal-space-unit {
+            flex: 0 0 65px;
+            width: 65px;
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 0.68rem;
+            text-transform: uppercase;
         }
 
         .tile-icon {
@@ -677,18 +767,9 @@
                         >
                     </div>
 
-                    <!-- Selected PC indicator -->
-                    <div id="selectedSeatIndicator" class="selected-pc-tag mb-3 d-none">
-                        <span><i class="fas fa-desktop me-1"></i> Selected Station:</span>
-                        <strong id="selectedSeatLabel">None</strong>
-                        <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2 text-decoration-none" onclick="clearSelectedSeat()" title="Clear Selection">
-                            <i class="fas fa-times-circle"></i>
-                        </button>
-                    </div>
-
                     <button type="submit" class="btn-submit-main mb-3" id="submitSessionBtn">
-                        <i class="fas fa-desktop"></i>
-                        <span id="submitBtnText">Access Workstation / Exit</span>
+                        <i class="fas fa-id-card me-2"></i>
+                        <span id="submitBtnText">Scan / Enter ID to Continue</span>
                     </button>
                 </form>
 
@@ -706,17 +787,22 @@
                 <div class="guidelines-box">
                     <strong class="text-dark"><i class="fas fa-info-circle text-primary me-1"></i> Quick Instructions:</strong>
                     <ul>
-                        <li><strong>Check-In:</strong> Enter your ID, click an available workstation from the map, and submit.</li>
-                        <li><strong>Check-Out:</strong> Enter your ID and submit. Your workstation is automatically released.</li>
-                        <li><strong>Notice:</strong> Please log out before leaving the lab.</li>
+                        <li><strong>Entering Lab:</strong> Scan/enter your ID. A popup will ask you to select an available PC.</li>
+                        <li><strong>Exiting Lab:</strong> Scan/enter your ID. Your workstation is released automatically.</li>
+                        <li><strong>Floor Map:</strong> The live board shows real-time workstation status.</li>
                     </ul>
                 </div>
             </section>
 
-            <!-- Right: Live Workstation Floor Map -->
+            <!-- Right: Live Workstation Floor Map (Monitor Display Only) -->
             <section class="floor-card">
                 <div class="floor-header">
-                    <h2><i class="fas fa-th text-primary"></i> Live Workstation Floor Map</h2>
+                    <div class="d-flex align-items-center gap-2">
+                        <h2><i class="fas fa-th text-primary"></i> Live Workstation Floor Map</h2>
+                        <span class="badge bg-light text-secondary border font-monospace small">
+                            <i class="fas fa-tv text-primary me-1"></i> Live Monitor
+                        </span>
+                    </div>
                     <div class="clean-legend">
                         <div><span class="legend-dot dot-avail"></span> Available</div>
                         <div><span class="legend-dot dot-use"></span> In-Use</div>
@@ -744,8 +830,7 @@
                                     data-seat-id="{{ item.id }}"
                                     data-pc-no="{{ item.pc_no }}"
                                     data-status="{{ item.status }}"
-                                    onclick="onTileClick(this)"
-                                    title="{% if item.status == 'Available' %}Click to choose {{ item.pc_no }}{% elif item.status == 'Reserved' %}Occupied by {{ item.user_name }} ({{ item.user_id_no }}){% else %}Workstation in maintenance{% endif %}"
+                                    title="{% if item.status == 'Available' %}{{ item.pc_no }} is Available{% elif item.status == 'Reserved' %}Occupied by {{ item.user_name }} ({{ item.user_id_no }}){% else %}{{ item.pc_no }} is in maintenance{% endif %}"
                                 >
                                     <i class="fas fa-desktop tile-icon"></i>
                                     <span class="tile-name">{{ item.pc_no }}</span>
@@ -776,6 +861,66 @@
 
         </div>
     </main>
+
+    <!-- Workstation Selection Popup Modal for Students -->
+    <div class="modal fade" id="seatSelectionModal" tabindex="-1" aria-labelledby="seatSelectionModalLabel" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+                <div class="modal-header bg-light border-bottom py-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; font-size: 1.25rem;">
+                            <i class="fas fa-desktop"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title font-weight-bold text-dark mb-0" id="seatSelectionModalLabel">
+                                Select Your Lab Workstation
+                            </h5>
+                            <div class="text-muted small mt-1">
+                                <span class="badge bg-primary text-white me-1" id="modalStudentName">Student</span>
+                                <span class="text-secondary font-monospace me-2" id="modalStudentId">ID: </span>
+                                <span class="text-secondary" id="modalStudentDept">Dept: </span>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="cancelSeatSelection()"></button>
+                </div>
+
+                <div class="modal-body p-4 bg-light">
+                    <!-- Instruction alert -->
+                    <div class="alert alert-info py-2 px-3 d-flex align-items-center justify-content-between mb-3 border-0 shadow-sm" style="background: #e7f1ff; color: #084298; border-radius: 8px;">
+                        <div class="small">
+                            <i class="fas fa-info-circle me-1"></i> Please click on any <strong>Available (Green)</strong> workstation to select it.
+                        </div>
+                        <div class="small font-monospace" id="modalSelectedSeatNotice">
+                            <span class="text-muted">No station selected</span>
+                        </div>
+                    </div>
+
+                    <!-- Row Benches in Modal -->
+                    <div class="modal-rows-wrapper" id="modalRowsContainer">
+                        <!-- Dynamically populated from layout data -->
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-white border-top py-3 justify-content-between">
+                    <div class="modal-legend d-flex align-items-center gap-3 small text-muted">
+                        <div><span class="legend-dot dot-avail"></span> Available (Click to Pick)</div>
+                        <div><span class="legend-dot dot-use"></span> In Use (Occupied)</div>
+                        <div><span class="legend-dot dot-maint"></span> Maintenance</div>
+                        <div><i class="fas fa-walking text-secondary me-1"></i> Aisle Gap</div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-dismiss="modal" onclick="cancelSeatSelection()">
+                            Cancel
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm px-4 font-weight-bold" id="confirmModalSeatBtn" disabled onclick="confirmModalSeatCheckin()">
+                            <i class="fas fa-check-circle me-1"></i> Confirm & Check In
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Student Registration Modal (Clean Standard Theme) -->
     <div class="modal fade" id="registrationModal" tabindex="-1" aria-labelledby="registrationModalLabel" aria-hidden="true">
@@ -888,8 +1033,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.8/dist/sweetalert2.all.min.js"></script>
 
     <script>
-        let chosenSeatId = null;
-        let chosenSeatName = null;
+        let currentActiveStudent = null;
+        let modalChosenSeatId = null;
+        let modalChosenSeatName = null;
+        let latestFloorRows = [];
 
         // Clock function
         function updateClock() {
@@ -901,50 +1048,226 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // Workstation Tile Click Handler
-        function onTileClick(tile) {
-            const status = tile.dataset.status;
-            const seatId = tile.dataset.seatId;
-            const pcNo = tile.dataset.pcNo;
+        // Modal Workstation Tile Click Handler (Inside Selection Popup)
+        function onModalSeatClick(el, seatId, pcNo) {
+            document.querySelectorAll('.modal-pc-tile').forEach(t => t.classList.remove('tile-selected-modal'));
+            el.classList.add('tile-selected-modal');
 
-            if (status === 'Maintenance') {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Workstation in Maintenance',
-                    text: `${pcNo} is temporarily out of service. Please choose another station.`,
-                });
-                return;
+            modalChosenSeatId = seatId;
+            modalChosenSeatName = pcNo;
+
+            const notice = document.getElementById('modalSelectedSeatNotice');
+            if (notice) {
+                notice.innerHTML = `<span class="badge bg-success text-white py-1 px-2"><i class="fas fa-check-circle me-1"></i> Selected: <strong>${pcNo}</strong></span>`;
             }
 
-            if (status === 'Reserved') {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Workstation In-Use',
-                    text: `${pcNo} is currently occupied.`,
-                });
-                return;
+            const confirmBtn = document.getElementById('confirmModalSeatBtn');
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = `<i class="fas fa-check-circle me-1"></i> Confirm & Check In to ${pcNo}`;
             }
-
-            // Select this workstation
-            document.querySelectorAll('.pc-tile').forEach(t => t.classList.remove('tile-selected'));
-            tile.classList.add('tile-selected');
-
-            chosenSeatId = seatId;
-            chosenSeatName = pcNo;
-
-            const banner = document.getElementById('selectedSeatIndicator');
-            const label = document.getElementById('selectedSeatLabel');
-            banner.classList.remove('d-none');
-            label.textContent = pcNo;
-
-            document.getElementById('studentIdInput').focus();
         }
 
-        function clearSelectedSeat() {
-            chosenSeatId = null;
-            chosenSeatName = null;
-            document.querySelectorAll('.pc-tile').forEach(t => t.classList.remove('tile-selected'));
-            document.getElementById('selectedSeatIndicator').classList.add('d-none');
+        // Render Workstation Rows inside the Popup Modal
+        function renderModalWorkstations(rows) {
+            const container = document.getElementById('modalRowsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (!rows || rows.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-desktop fa-2x mb-2 text-secondary"></i>
+                        <p class="mb-0">No workstations configured yet.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            rows.forEach(row => {
+                const rowCard = document.createElement('div');
+                rowCard.className = 'modal-bench-row';
+
+                let itemsHtml = '';
+                if (row.items && row.items.length > 0) {
+                    row.items.forEach(item => {
+                        if (!item.is_space) {
+                            const isAvailable = (item.status === 'Available');
+                            const isReserved = (item.status === 'Reserved');
+                            const isSelected = (modalChosenSeatId == item.id);
+
+                            let clickAttr = '';
+                            let titleTip = '';
+                            if (isAvailable) {
+                                clickAttr = `onclick="onModalSeatClick(this, '${item.id}', '${item.pc_no}')"`;
+                                titleTip = `Click to choose ${item.pc_no}`;
+                            } else if (isReserved) {
+                                titleTip = `${item.pc_no} is currently occupied (${item.user_name || 'In Use'})`;
+                            } else {
+                                titleTip = `${item.pc_no} is under maintenance`;
+                            }
+
+                            let userBadge = '';
+                            if (isReserved && item.user_name) {
+                                userBadge = `<span class="tile-user-name" title="${item.user_name}">${item.user_name}</span>`;
+                            }
+
+                            itemsHtml += `
+                                <div 
+                                    class="modal-pc-tile status-${item.status.toLowerCase()} ${isSelected ? 'tile-selected-modal' : ''}" 
+                                    id="modal_tile_${item.id}"
+                                    data-seat-id="${item.id}"
+                                    data-pc-no="${item.pc_no}"
+                                    data-status="${item.status}"
+                                    ${clickAttr}
+                                    title="${titleTip}"
+                                >
+                                    <i class="fas fa-desktop modal-tile-icon"></i>
+                                    <span class="tile-name">${item.pc_no}</span>
+                                    <span class="modal-tile-badge">${item.status}</span>
+                                    ${userBadge}
+                                </div>
+                            `;
+                        } else {
+                            itemsHtml += `
+                                <div class="modal-space-unit" title="Walkway Aisle Gap">
+                                    <i class="fas fa-walking mb-1"></i>
+                                    <span>Aisle</span>
+                                </div>
+                            `;
+                        }
+                    });
+                } else {
+                    itemsHtml = '<div class="text-muted small py-2">No workstations in this row.</div>';
+                }
+
+                const pcCount = (row.items && row.items.length) ? row.items.filter(i => !i.is_space).length : (row.pc_count || 0);
+
+                rowCard.innerHTML = `
+                    <div class="modal-bench-header">
+                        <span><i class="fas fa-layer-group text-primary me-1"></i> ${row.name}</span>
+                        <span class="badge bg-light text-dark border font-monospace">${pcCount} PCs</span>
+                    </div>
+                    <div class="modal-bench-items">
+                        ${itemsHtml}
+                    </div>
+                `;
+                container.appendChild(rowCard);
+            });
+        }
+
+        // Open Workstation Selection Popup Modal
+        async function openSeatSelectionModal(studentData) {
+            currentActiveStudent = studentData;
+            modalChosenSeatId = null;
+            modalChosenSeatName = null;
+
+            document.getElementById('modalStudentName').textContent = studentData.user_name || 'Student';
+            document.getElementById('modalStudentId').textContent = 'ID: ' + (studentData.user_id_no || studentData.student_id);
+            document.getElementById('modalStudentDept').textContent = 'Dept: ' + (studentData.department || 'N/A');
+
+            const notice = document.getElementById('modalSelectedSeatNotice');
+            if (notice) notice.innerHTML = '<span class="text-muted">No station selected yet</span>';
+
+            const confirmBtn = document.getElementById('confirmModalSeatBtn');
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Confirm & Check In';
+            }
+
+            // Always fetch the freshest layout to show accurate real-time statuses
+            try {
+                const res = await fetch('/lab/api/pc-layout/');
+                const data = await res.json();
+                if (data.status === 'success') {
+                    latestFloorRows = data.rows;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+
+            renderModalWorkstations(latestFloorRows);
+
+            const modalEl = document.getElementById('seatSelectionModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+
+        function cancelSeatSelection() {
+            currentActiveStudent = null;
+            modalChosenSeatId = null;
+            modalChosenSeatName = null;
+            const input = document.getElementById('studentIdInput');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        // Confirm Selection and Perform Check-In
+        async function confirmModalSeatCheckin() {
+            if (!currentActiveStudent || !modalChosenSeatId) return;
+
+            const confirmBtn = document.getElementById('confirmModalSeatBtn');
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Assigning Workstation...';
+
+            try {
+                const response = await fetch('/lab/api/session/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        student_id: currentActiveStudent.student_id,
+                        seat_id: modalChosenSeatId,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.action === 'checkin') {
+                    // Close selection modal
+                    const modalEl = document.getElementById('seatSelectionModal');
+                    const modalInst = bootstrap.Modal.getInstance(modalEl);
+                    if (modalInst) modalInst.hide();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Check-In Successful',
+                        html: `
+                            <div class="text-start mt-2">
+                                <p class="mb-1"><strong>Welcome:</strong> ${data.user_name}</p>
+                                <p class="mb-1"><strong>Assigned PC:</strong> <span class="text-primary font-monospace fw-bold">${data.seat_number}</span></p>
+                                <p class="mb-0"><strong>Department:</strong> ${data.department}</p>
+                            </div>
+                        `,
+                        timer: 3500,
+                        timerProgressBar: true,
+                    });
+
+                    document.getElementById('studentIdInput').value = '';
+                    refreshPcLayout();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Check-In Failed',
+                        text: data.message || 'Could not assign the selected workstation.',
+                    });
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = `<i class="fas fa-check-circle me-1"></i> Confirm & Check In to ${modalChosenSeatName}`;
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Connection Error',
+                    text: 'Could not connect to the workstation server.',
+                });
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = `<i class="fas fa-check-circle me-1"></i> Confirm & Check In`;
+            } finally {
+                const idInput = document.getElementById('studentIdInput');
+                if (idInput) idInput.focus();
+            }
         }
 
         // Handle Main Check-in / Check-out Submit
@@ -957,7 +1280,7 @@
             if (!studentId) return;
 
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Processing...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Verifying ID...';
 
             try {
                 const response = await fetch('/lab/api/session/', {
@@ -965,7 +1288,6 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         student_id: studentId,
-                        seat_id: chosenSeatId,
                     }),
                 });
 
@@ -988,8 +1310,15 @@
                             timerProgressBar: true,
                         });
                         idInput.value = '';
-                        clearSelectedSeat();
                         refreshPcLayout();
+                    } else if (data.action === 'prompt_seat_selection') {
+                        // ID confirmed -> Open Workstation Selection Popup!
+                        openSeatSelectionModal({
+                            student_id: studentId,
+                            user_name: data.user_name,
+                            user_id_no: data.user_id_no,
+                            department: data.department
+                        });
                     } else if (data.action === 'checkin') {
                         // User checked in
                         Swal.fire({
@@ -1006,19 +1335,10 @@
                             timerProgressBar: true,
                         });
                         idInput.value = '';
-                        clearSelectedSeat();
                         refreshPcLayout();
-                    } else if (data.action === 'prompt_seat_selection') {
-                        // Needs to pick a seat first
-                        Swal.fire({
-                            icon: 'info',
-                            title: `Welcome, ${data.user_name}!`,
-                            text: 'Please select an available workstation (green tile) from the map, then click Access Workstation.',
-                        });
                     }
                 } else {
                     if (data.not_found) {
-                        // ID not found prompt
                         const prompt = await Swal.fire({
                             icon: 'question',
                             title: 'ID Not Registered',
@@ -1057,7 +1377,7 @@
                 });
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-desktop me-2"></i> <span id="submitBtnText">Access Workstation / Exit</span>';
+                submitBtn.innerHTML = '<i class="fas fa-id-card me-2"></i> <span id="submitBtnText">Scan / Enter ID to Continue</span>';
                 idInput.focus();
             }
         }
@@ -1071,13 +1391,15 @@
                 const res = await fetch('/lab/api/pc-layout/');
                 const data = await res.json();
                 if (data.status === 'success') {
+                    latestFloorRows = data.rows;
+
                     // Update counters
                     document.getElementById('statAvailableCount').textContent = data.available_count;
                     document.getElementById('statInUseCount').textContent = data.in_use_count;
                     document.getElementById('statMaintCount').textContent = data.maintenance_count;
                     document.getElementById('statTotalCount').textContent = data.total_count;
 
-                    // Re-render Row Benches
+                    // Re-render Background Monitor Row Benches (Monitor Only, No Click Action)
                     const container = document.getElementById('floorRowsContainer');
                     if (!container) return;
                     container.innerHTML = '';
@@ -1103,23 +1425,21 @@
                         if (row.items && row.items.length > 0) {
                             row.items.forEach(item => {
                                 if (!item.is_space) {
-                                    const isSelected = (chosenSeatId == item.id);
                                     let userSpan = '';
                                     if (item.status === 'Reserved' && item.user_name) {
                                         userSpan = `<span class="tile-user-name" title="${item.user_name}">${item.user_name}</span>`;
                                     }
-                                    const titleTip = item.status === 'Available' ? `Click to choose ${item.pc_no}` :
+                                    const titleTip = item.status === 'Available' ? `${item.pc_no} is Available` :
                                                      item.status === 'Reserved' ? `Occupied by ${item.user_name || 'User'}` :
-                                                     'Workstation in maintenance';
+                                                     `${item.pc_no} is in maintenance`;
 
                                     itemsHtml += `
                                         <div 
-                                            class="pc-tile status-${item.status.toLowerCase()} ${isSelected ? 'tile-selected' : ''}" 
+                                            class="pc-tile status-${item.status.toLowerCase()}" 
                                             id="tile_${item.id}"
                                             data-seat-id="${item.id}"
                                             data-pc-no="${item.pc_no}"
                                             data-status="${item.status}"
-                                            onclick="onTileClick(this)"
                                             title="${titleTip}"
                                         >
                                             <i class="fas fa-desktop tile-icon"></i>
