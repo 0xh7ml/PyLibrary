@@ -72,9 +72,15 @@
     <!-- Main Sidebar Container -->
     <aside class="main-sidebar sidebar-dark-navy elevation-4">
         <!-- Brand Logo -->
+        {% if '/lab/' in request.path %}
+        <a href="{% url 'lab:dashboard' %}" class="brand-link text-center">
+            <span class="brand-text font-weight-light"><i class="fas fa-microchip text-info me-1"></i> Computer Lab Admin</span>
+        </a>
+        {% else %}
         <a href="{% url 'home' %}" class="brand-link text-center">
             <span class="brand-text font-weight-light">{{ APP_NAME|default:"PyLibrary" }}</span>
         </a>
+        {% endif %}
 
         <!-- Sidebar -->
         <div class="sidebar">

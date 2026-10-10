@@ -1,120 +1,151 @@
-<li class="nav-item">
-    <a href="{% url 'home' %}" class="nav-link">
-    <i class="nav-icon fas fa-tachometer-alt"></i>
-    <p>
-        Dashboard
-    </p>
-    </a>
-</li>
-<li class="nav-item">
-    <a href="#" class="nav-link">
-        <i class="nav-icon fa fa-chart-line"></i>
-        <p>
-            Analytics
-            <i class="right fas fa-angle-left"></i>
-        </p>
-    </a>
-    <ul class="nav nav-treeview">
-        <li class="nav-item">
-            <a href="{% url 'elibrary_report' %}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
-                <p>E-Library Report</p>
-            </a>
-        </li>
-    </ul>
-    <ul class="nav nav-treeview">
-        <li class="nav-item">
-            <a href="{% url 'library_report' %}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Main Library Report</p>
-            </a>
-        </li>
-    </ul>
-</li>
-<li class="nav-item">
-    <a href="#" class="nav-link">
-        <i class="nav-icon fas fa-ticket-alt"></i>
-        <p>
-            Tickets
-            <i class="right fas fa-angle-left"></i>
-        </p>
-    </a>
-    <ul class="nav nav-treeview">
-        <li class="nav-item">
-            <a href="{% url 'ticket_list' %}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
-                <p>All Tickets</p>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'ticket_add' %}" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Add Ticket</p>
-            </a>
-        </li>
-    </ul>
-</li>
-<li class="nav-item">
-    <a href="#" class="nav-link">
-        <i class="nav-icon fas fa-university"></i>
-        <p>
-            Library Management
-            <i class="right fas fa-angle-left"></i>
-        </p>
-    </a>
-    <ul class="nav nav-treeview">
-        <li class="nav-item">
-            <a href="{% url 'library:department_list' %}" class="nav-link">
-                <i class="fas fa-building nav-icon"></i>
-                <p>Departments</p>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'library:elibrary_seat_list' %}" class="nav-link">
-                <i class="fas fa-desktop nav-icon"></i>
-                <p>ELibrary Seats</p>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'library:student_list' %}" class="nav-link">
-                <i class="fas fa-user-graduate nav-icon"></i>
-                <p>Students</p>
-            </a>
-        </li>
-    </ul>
-</li>
+{% if '/lab/' in request.path %}
+    <!-- ============================================== -->
+    <!-- COMPUTER LAB EXCLUSIVE ADMIN MENU (SEPARATE)    -->
+    <!-- ============================================== -->
+    <li class="nav-header text-uppercase font-weight-bold text-info" style="font-size: 0.75rem; letter-spacing: 1px;">
+        <i class="fas fa-microchip me-1"></i> Computer Lab Admin
+    </li>
 
-<!-- Computer Lab Universe Menu -->
-<li class="nav-header text-uppercase font-weight-bold text-info mt-2" style="font-size: 0.72rem; letter-spacing: 1px;">
-    <i class="fas fa-microchip me-1"></i> Computer Lab
-</li>
-<li class="nav-item">
-    <a href="{% url 'lab:dashboard' %}" class="nav-link">
-        <i class="nav-icon fas fa-laptop-code text-info"></i>
-        <p>Lab Dashboard</p>
-    </a>
-</li>
-<li class="nav-item">
-    <a href="{% url 'lab:seat_list' %}" class="nav-link">
-        <i class="nav-icon fas fa-desktop text-success"></i>
-        <p>Lab Workstations</p>
-    </a>
-</li>
-<li class="nav-item">
-    <a href="{% url 'lab:report' %}" class="nav-link">
-        <i class="nav-icon fas fa-clipboard-list text-primary"></i>
-        <p>Lab Sessions Report</p>
-    </a>
-</li>
-<li class="nav-item">
-    <a href="{% url 'lab:ticket_list' %}" class="nav-link">
-        <i class="nav-icon fas fa-tools text-warning"></i>
-        <p>Lab Tickets</p>
-    </a>
-</li>
-<li class="nav-item">
-    <a href="{% url 'lab:portal' %}" target="_blank" class="nav-link">
-        <i class="nav-icon fas fa-external-link-alt text-cyan"></i>
-        <p>Public Lab Terminal <span class="badge badge-info right">Portal</span></p>
-    </a>
-</li>
+    <li class="nav-item">
+        <a href="{% url 'lab:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <i class="nav-icon fas fa-tachometer-alt"></i>
+            <p>Lab Dashboard</p>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a href="{% url 'lab:seat_list' %}" class="nav-link {% if 'seat' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="nav-icon fas fa-desktop text-success"></i>
+            <p>Lab Workstations</p>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a href="{% url 'lab:report' %}" class="nav-link {% if request.resolver_match.url_name == 'report' %}active{% endif %}">
+            <i class="nav-icon fas fa-file-alt text-primary"></i>
+            <p>Lab Sessions Report</p>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a href="{% url 'lab:ticket_list' %}" class="nav-link {% if 'ticket' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="nav-icon fas fa-tools text-warning"></i>
+            <p>Lab Issue Tickets</p>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a href="{% url 'lab:portal' %}" target="_blank" class="nav-link text-info">
+            <i class="nav-icon fas fa-external-link-alt"></i>
+            <p>Public Lab Terminal <span class="badge badge-info right">Live</span></p>
+        </a>
+    </li>
+
+    <!-- Quick Switcher to Library Admin -->
+    <li class="nav-header text-uppercase text-muted mt-3" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+        SYSTEM SWITCHER
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'home' %}" class="nav-link">
+            <i class="nav-icon fas fa-book-reader text-secondary"></i>
+            <p>Switch to Library Admin</p>
+        </a>
+    </li>
+
+{% else %}
+    <!-- ============================================== -->
+    <!-- LIBRARY ADMIN MENU                             -->
+    <!-- ============================================== -->
+    <li class="nav-item">
+        <a href="{% url 'home' %}" class="nav-link">
+            <i class="nav-icon fas fa-tachometer-alt"></i>
+            <p>Dashboard</p>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="#" class="nav-link">
+            <i class="nav-icon fa fa-chart-line"></i>
+            <p>
+                Analytics
+                <i class="right fas fa-angle-left"></i>
+            </p>
+        </a>
+        <ul class="nav nav-treeview">
+            <li class="nav-item">
+                <a href="{% url 'elibrary_report' %}" class="nav-link">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>E-Library Report</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'library_report' %}" class="nav-link">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Main Library Report</p>
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li class="nav-item">
+        <a href="#" class="nav-link">
+            <i class="nav-icon fas fa-ticket-alt"></i>
+            <p>
+                Tickets
+                <i class="right fas fa-angle-left"></i>
+            </p>
+        </a>
+        <ul class="nav nav-treeview">
+            <li class="nav-item">
+                <a href="{% url 'ticket_list' %}" class="nav-link">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>All Tickets</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'ticket_add' %}" class="nav-link">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Add Ticket</p>
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li class="nav-item">
+        <a href="#" class="nav-link">
+            <i class="nav-icon fas fa-university"></i>
+            <p>
+                Library Management
+                <i class="right fas fa-angle-left"></i>
+            </p>
+        </a>
+        <ul class="nav nav-treeview">
+            <li class="nav-item">
+                <a href="{% url 'library:department_list' %}" class="nav-link">
+                    <i class="fas fa-building nav-icon"></i>
+                    <p>Departments</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'library:elibrary_seat_list' %}" class="nav-link">
+                    <i class="fas fa-desktop nav-icon"></i>
+                    <p>ELibrary Seats</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'library:student_list' %}" class="nav-link">
+                    <i class="fas fa-user-graduate nav-icon"></i>
+                    <p>Students</p>
+                </a>
+            </li>
+        </ul>
+    </li>
+
+    <!-- Quick Switcher to Lab Admin -->
+    <li class="nav-header text-uppercase text-muted mt-2" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+        SYSTEM SWITCHER
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'lab:dashboard' %}" class="nav-link">
+            <i class="nav-icon fas fa-microchip text-info"></i>
+            <p>Switch to Lab Admin</p>
+        </a>
+    </li>
+{% endif %}

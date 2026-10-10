@@ -5,14 +5,32 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from Library.models import Student, Faculty, Department
 
 
+class LabRow(models.Model):
+    row_number = models.PositiveIntegerField(unique=True)
+    name = models.CharField(max_length=100, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Lab Row"
+        verbose_name_plural = "Lab Rows"
+        db_table = "tb_lab_rows"
+        ordering = ['row_number']
+
+    def __str__(self):
+        return self.name or f"Row {self.row_number}"
+
+
 class LabSeat(models.Model):
     PC_STATUS_CHOICES = [
         ('Available', 'Available'),
         ('Reserved', 'Reserved'),
         ('Maintenance', 'Maintenance'),
     ]
-    pc_no = models.CharField(max_length=50)
-    layout_slot = models.PositiveIntegerField(null=True, blank=True, unique=True)
+    row = models.ForeignKey(LabRow, on_delete=models.CASCADE, null=True, blank=True, related_name='seats')
+    col_index = models.PositiveIntegerField(default=1)
+    is_space = models.BooleanField(default=False)
+    pc_no = models.CharField(max_length=50, blank=True, default='')
+    layout_slot = models.PositiveIntegerField(null=True, blank=True)
     status = models.CharField(max_length=50, choices=PC_STATUS_CHOICES, default='Available')
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     notes = models.CharField(max_length=255, blank=True, default='')
@@ -23,10 +41,12 @@ class LabSeat(models.Model):
         verbose_name = "Lab Seat"
         verbose_name_plural = "Lab Seats"
         db_table = "tb_lab_seats"
-        ordering = ['layout_slot', 'pc_no']
+        ordering = ['row__row_number', 'col_index', 'id']
 
     def __str__(self):
-        return f"{self.pc_no}"
+        if self.is_space:
+            return f"[Empty Space {self.col_index}]"
+        return self.pc_no or f"Seat {self.id}"
 
 
 class LabSession(models.Model):

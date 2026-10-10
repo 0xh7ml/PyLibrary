@@ -1,0 +1,167 @@
+<style>
+    :root {
+        --status-available: #198754;
+        --status-reserved: #0d6efd;
+        --status-maintenance: #ffc107;
+    }
+
+    .row-selection-block {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.85rem 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .row-block-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 0.65rem;
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .row-block-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .seat-cell {
+        cursor: pointer;
+        min-width: 62px;
+        height: 52px;
+        padding: 0.25rem 0.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 700;
+        font-size: 0.78rem;
+        color: white;
+        border-radius: 6px;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        user-select: none;
+        border: 2px solid transparent;
+    }
+
+    .seat-cell.seat-available { 
+        background-color: var(--status-available);
+        border-color: #157347;
+    }
+    .seat-cell.seat-available:hover {
+        transform: scale(1.08);
+        box-shadow: 0 4px 10px rgba(25, 135, 84, 0.3);
+    }
+
+    .seat-cell.seat-reserved { 
+        background-color: var(--status-reserved);
+        border-color: #0b5ed7;
+        cursor: not-allowed;
+        opacity: 0.75;
+    }
+
+    .seat-cell.seat-maintenance { 
+        background-color: var(--status-maintenance);
+        border-color: #ffca2c;
+        color: #000;
+        cursor: not-allowed;
+        opacity: 0.75;
+    }
+
+    /* Aisle gap representation */
+    .aisle-gap-node {
+        width: 38px;
+        height: 52px;
+        border: 1px dashed #cbd5e1;
+        background: #f8fafc;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #94a3b8;
+        font-size: 0.7rem;
+    }
+
+    .selection-legend {
+        display: flex;
+        justify-content: center;
+        gap: 1.25rem;
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #475569;
+        margin-top: 1rem;
+    }
+
+    .sel-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        display: inline-block;
+        margin-right: 0.35rem;
+        vertical-align: -1px;
+    }
+    .dot-avail { background: var(--status-available); }
+    .dot-res { background: var(--status-reserved); }
+    .dot-maint { background: var(--status-maintenance); }
+</style>
+
+<div class="seat-selection-container text-start">
+    <div class="d-flex justify-content-between align-items-center mb-3 px-1">
+        <span class="text-muted small"><strong>{{ total_available }}</strong> of <strong>{{ total_seats }}</strong> workstations available</span>
+    </div>
+
+    {% for row in rows_data %}
+    <div class="row-selection-block">
+        <div class="row-block-title">
+            <i class="fas fa-bars text-secondary"></i>
+            <span>{{ row.name }}</span>
+        </div>
+        <div class="row-block-items">
+            {% for it in row.items %}
+                {% if not it.is_space %}
+                <div class="seat-cell seat-{{ it.status|lower }}"
+                     data-seat-id="{{ it.id }}"
+                     data-seat-number="{{ it.pc_no }}"
+                     data-status="{{ it.status|lower }}"
+                     {% if it.status == 'Available' %}
+                     onclick="selectLabSeat(this)"
+                     title="Click to select {{ it.pc_no }}"
+                     {% else %}
+                     title="{{ it.pc_no }} is {{ it.status }}"
+                     {% endif %}>
+                    <i class="fas fa-desktop mb-1" style="font-size: 0.75rem;"></i>
+                    <span>{{ it.pc_no }}</span>
+                </div>
+                {% else %}
+                <div class="aisle-gap-node" title="Walkway Aisle">
+                    <i class="fas fa-walking"></i>
+                </div>
+                {% endif %}
+            {% empty %}
+                <small class="text-muted fst-italic">No workstations in this row.</small>
+            {% endfor %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="alert alert-warning text-center">
+        No workstation rows configured yet.
+    </div>
+    {% endfor %}
+
+    <!-- Legend -->
+    <div class="selection-legend">
+        <div><span class="sel-dot dot-avail"></span> Available (Click to Pick)</div>
+        <div><span class="sel-dot dot-res"></span> In-Use</div>
+        <div><span class="sel-dot dot-maint"></span> Maintenance</div>
+        <div><i class="fas fa-walking text-muted me-1"></i> Walkway Aisle</div>
+    </div>
+</div>

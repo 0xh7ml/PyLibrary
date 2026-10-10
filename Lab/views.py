@@ -16,10 +16,10 @@ from django.core.paginator import Paginator
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q
+from django.db.models import Q, Max
 
 from Library.models import Student, Faculty, Department
-from .models import LabSeat, LabSession, LabTicket
+from .models import LabSeat, LabSession, LabTicket, LabRow
 from .utils import (
     canonical_lab_seats,
     cleanup_duplicate_lab_seats,
@@ -37,17 +37,10 @@ logger = logging.getLogger(__name__)
 
 def lab_portal(request):
     """
-    Main Computer Lab Monitor portal.
-    Students enter their ID to check-in/select a PC or check-out upon exit.
+    Main Computer Lab Monitor portal with row-by-row physical workstations.
     """
     enforce_midnight_lab_session_policy()
     cleanup_duplicate_lab_seats()
-
-    canonical_seats = canonical_lab_seats().order_by('layout_slot', 'pc_no')
-    total_pcs = canonical_seats.count()
-    available_pcs = canonical_seats.filter(status='Available').count()
-    in_use_pcs = canonical_seats.filter(status='Reserved').count()
-    maintenance_pcs = canonical_seats.filter(status='Maintenance').count()
 
     # Active session mapping for display
     active_sessions = LabSession.objects.filter(status='Active', end_time__isnull=True).select_related('seat')
@@ -59,18 +52,35 @@ def lab_portal(request):
             'start_time': sess.formatted_start_time,
         }
 
-    seats_layout = []
-    for seat in canonical_seats:
-        info = seat_session_map.get(seat.id, {})
-        seats_layout.append({
-            'id': seat.id,
-            'pc_no': seat.pc_no,
-            'status': seat.status,
-            'layout_slot': seat.layout_slot or seat.id,
-            'user_name': info.get('user_name', ''),
-            'user_id_no': info.get('user_id_no', ''),
-            'start_time': info.get('start_time', ''),
+    rows = LabRow.objects.prefetch_related('seats').order_by('row_number')
+    rows_data = []
+    for r in rows:
+        row_items = []
+        for s in r.seats.order_by('col_index', 'id'):
+            info = seat_session_map.get(s.id, {})
+            row_items.append({
+                'id': s.id,
+                'is_space': s.is_space,
+                'col_index': s.col_index,
+                'pc_no': s.pc_no,
+                'status': s.status,
+                'user_name': info.get('user_name', ''),
+                'user_id_no': info.get('user_id_no', ''),
+                'start_time': info.get('start_time', ''),
+            })
+        rows_data.append({
+            'id': r.id,
+            'row_number': r.row_number,
+            'name': r.name or f"Row {r.row_number}",
+            'items': row_items,
+            'pc_count': sum(1 for it in row_items if not it['is_space']),
         })
+
+    active_pcs = LabSeat.objects.filter(is_space=False)
+    total_pcs = active_pcs.count()
+    available_pcs = active_pcs.filter(status='Available').count()
+    in_use_pcs = active_pcs.filter(status='Reserved').count()
+    maintenance_pcs = active_pcs.filter(status='Maintenance').count()
 
     departments = Department.objects.order_by('name')
 
@@ -79,42 +89,84 @@ def lab_portal(request):
         'available_pcs': available_pcs,
         'in_use_pcs': in_use_pcs,
         'maintenance_pcs': maintenance_pcs,
-        'seats_layout': seats_layout,
+        'rows_data': rows_data,
         'departments': departments,
-        'footer_notice': 'Please check out from your PC before leaving the Computer Lab to avoid being locked out.',
+        'footer_notice': 'Please check out from your workstation before leaving the Computer Lab.',
     }
     return render(request, 'lab/portal.html', context)
 
 
-def lab_pc_layout_api(request):
-    """API endpoint to get the live real-time state of all lab PCs"""
+def lab_pc_layout_html(request):
+    """Render the Lab PC layout component grouped by physical rows for seat selection modal and live display"""
     enforce_midnight_lab_session_policy()
     cleanup_duplicate_lab_seats()
 
-    canonical_seats = canonical_lab_seats().order_by('layout_slot', 'pc_no')
+    rows = LabRow.objects.prefetch_related('seats').order_by('row_number')
+    rows_data = []
+    for r in rows:
+        row_items = []
+        for s in r.seats.order_by('col_index', 'id'):
+            row_items.append({
+                'id': s.id,
+                'is_space': s.is_space,
+                'col_index': s.col_index,
+                'pc_no': s.pc_no,
+                'status': s.status,
+            })
+        rows_data.append({
+            'id': r.id,
+            'row_number': r.row_number,
+            'name': r.name or f"Row {r.row_number}",
+            'items': row_items,
+        })
+
+    active_pcs = LabSeat.objects.filter(is_space=False)
+    context = {
+        'rows_data': rows_data,
+        'total_available': active_pcs.filter(status='Available').count(),
+        'total_seats': active_pcs.count(),
+    }
+    return render(request, 'lab/components/seat_selection.html', context)
+
+
+def lab_pc_layout_api(request):
+    """API endpoint to get live state grouped by rows"""
+    enforce_midnight_lab_session_policy()
+    cleanup_duplicate_lab_seats()
+
     active_sessions = LabSession.objects.filter(status='Active', end_time__isnull=True)
     active_map = {sess.seat_id: sess for sess in active_sessions}
 
-    seats_data = []
-    for s in canonical_seats:
-        sess = active_map.get(s.id)
-        seats_data.append({
-            'id': s.id,
-            'pc_no': s.pc_no,
-            'status': s.status,
-            'layout_slot': s.layout_slot or s.id,
-            'user_name': sess.user_name if sess else None,
-            'user_id_no': sess.user_id_no if sess else None,
-            'start_time': sess.formatted_start_time if sess else None,
+    rows = LabRow.objects.prefetch_related('seats').order_by('row_number')
+    rows_data = []
+    for r in rows:
+        items = []
+        for s in r.seats.order_by('col_index', 'id'):
+            sess = active_map.get(s.id)
+            items.append({
+                'id': s.id,
+                'is_space': s.is_space,
+                'col_index': s.col_index,
+                'pc_no': s.pc_no,
+                'status': s.status,
+                'user_name': sess.user_name if sess else None,
+                'user_id_no': sess.user_id_no if sess else None,
+            })
+        rows_data.append({
+            'id': r.id,
+            'row_number': r.row_number,
+            'name': r.name or f"Row {r.row_number}",
+            'items': items,
         })
 
+    active_pcs = LabSeat.objects.filter(is_space=False)
     return JsonResponse({
         'status': 'success',
-        'seats': seats_data,
-        'available_count': canonical_seats.filter(status='Available').count(),
-        'in_use_count': canonical_seats.filter(status='Reserved').count(),
-        'maintenance_count': canonical_seats.filter(status='Maintenance').count(),
-        'total_count': canonical_seats.count(),
+        'rows': rows_data,
+        'available_count': active_pcs.filter(status='Available').count(),
+        'in_use_count': active_pcs.filter(status='Reserved').count(),
+        'maintenance_count': active_pcs.filter(status='Maintenance').count(),
+        'total_count': active_pcs.count(),
     })
 
 
@@ -199,13 +251,12 @@ def api_lab_session(request):
             # ----------------------------------------------------
             # 2. No Active Session -> CHECKIN
             # ----------------------------------------------------
-            # Check if seat_id was specified
             if seat_id:
-                seat = LabSeat.objects.select_for_update().filter(id=seat_id, status='Available').first()
+                seat = LabSeat.objects.select_for_update().filter(id=seat_id, status='Available', is_space=False).first()
                 if not seat:
                     return JsonResponse({
                         'status': 'error',
-                        'message': 'Selected PC is no longer available. Please select another PC.',
+                        'message': 'Selected workstation is not available. Please choose another station.',
                     }, status=400)
 
                 # Create Lab Session
@@ -231,17 +282,17 @@ def api_lab_session(request):
                 })
 
             # If no seat_id was given, check available seats and prompt selection
-            available_seats_count = LabSeat.objects.filter(status='Available').count()
+            available_seats_count = LabSeat.objects.filter(status='Available', is_space=False).count()
             if available_seats_count == 0:
                 return JsonResponse({
                     'status': 'error',
-                    'message': 'Sorry, no PCs are currently available in the lab.',
+                    'message': 'Sorry, no workstations are currently available in the lab.',
                 }, status=400)
 
             return JsonResponse({
                 'status': 'success',
                 'action': 'prompt_seat_selection',
-                'message': f'Hello {user.name}! Please choose an available PC.',
+                'message': f'Hello {user.name}! Please choose an available workstation.',
                 'user_name': user.name,
                 'user_type': user_type,
                 'user_id': user.id,
@@ -362,24 +413,22 @@ def api_lab_ticket(request):
 
 
 # ==============================================================================
-# LAB ADMIN DASHBOARD & MANAGEMENT (http://127.0.0.1:8000/lab/admin/)
+# LAB ADMIN DASHBOARD (http://127.0.0.1:8000/lab/admin/)
 # ==============================================================================
 
 @login_required
 def lab_dashboard(request):
-    """Dedicated Admin Dashboard for Computer Lab"""
+    """Dedicated Admin Dashboard for Computer Lab with row-by-row layout map"""
     enforce_midnight_lab_session_policy()
     cleanup_duplicate_lab_seats()
 
     now = timezone.now()
     today = now.date()
 
-    # Live Statistics
     students_in_lab = LabSession.objects.filter(status='Active', end_time__isnull=True).count()
     todays_total_sessions = LabSession.objects.filter(start_time__date=today).count()
     total_students_db = Student.objects.count()
 
-    # Unique users today
     unique_user_keys = set()
     for s in LabSession.objects.filter(start_time__date=today).values('content_type_id', 'object_id', 'student_id'):
         if s['student_id']:
@@ -388,14 +437,13 @@ def lab_dashboard(request):
             unique_user_keys.add((s['content_type_id'], s['object_id']))
     unique_users_today = len(unique_user_keys)
 
-    # PC Status Overview
-    canonical_seats = canonical_lab_seats().order_by('layout_slot', 'pc_no')
-    total_pcs = canonical_seats.count()
-    available_pcs = canonical_seats.filter(status='Available').count()
-    in_use_pcs = canonical_seats.filter(status='Reserved').count()
-    out_of_service_pcs = canonical_seats.filter(status='Maintenance').count()
+    active_pcs = LabSeat.objects.filter(is_space=False)
+    total_pcs = active_pcs.count()
+    available_pcs = active_pcs.filter(status='Available').count()
+    in_use_pcs = active_pcs.filter(status='Reserved').count()
+    out_of_service_pcs = active_pcs.filter(status='Maintenance').count()
 
-    # Active session map for PC visual layout
+    # Active session map
     active_sessions = LabSession.objects.filter(status='Active', end_time__isnull=True).select_related('seat')
     active_session_map = {}
     for sess in active_sessions:
@@ -406,18 +454,27 @@ def lab_dashboard(request):
             'duration': sess.duration_display,
         }
 
-    dashboard_seats_layout = []
-    for seat in canonical_seats:
-        info = active_session_map.get(seat.id, {})
-        dashboard_seats_layout.append({
-            'id': seat.id,
-            'pc_no': seat.pc_no,
-            'status': seat.status,
-            'layout_slot': seat.layout_slot or seat.id,
-            'user_name': info.get('name', ''),
-            'user_id': info.get('id_no', ''),
-            'start_time': info.get('start_time', ''),
-            'duration': info.get('duration', ''),
+    # Group layout by physical rows
+    rows = LabRow.objects.prefetch_related('seats').order_by('row_number')
+    dashboard_rows = []
+    for r in rows:
+        row_items = []
+        for s in r.seats.order_by('col_index', 'id'):
+            info = active_session_map.get(s.id, {})
+            row_items.append({
+                'id': s.id,
+                'is_space': s.is_space,
+                'col_index': s.col_index,
+                'pc_no': s.pc_no,
+                'status': s.status,
+                'user_name': info.get('name', ''),
+                'user_id': info.get('id_no', ''),
+                'duration': info.get('duration', ''),
+            })
+        dashboard_rows.append({
+            'row_number': r.row_number,
+            'name': r.name or f"Row {r.row_number}",
+            'items': row_items,
         })
 
     # 7-Day Usage Analytics
@@ -434,7 +491,6 @@ def lab_dashboard(request):
     week_data = [day['count'] for day in usage_data]
     week_total = sum(week_data)
 
-    # Lab Ticket Statistics
     total_tickets = LabTicket.objects.count()
     open_tickets = LabTicket.objects.filter(status='open').count()
     in_progress_tickets = LabTicket.objects.filter(status='in_progress').count()
@@ -452,7 +508,7 @@ def lab_dashboard(request):
         'available_pcs': available_pcs,
         'in_use_pcs': in_use_pcs,
         'out_of_service_pcs': out_of_service_pcs,
-        'dashboard_seats_layout': dashboard_seats_layout,
+        'dashboard_rows': dashboard_rows,
         'week_labels': week_labels,
         'week_data': week_data,
         'week_total': week_total,
@@ -469,99 +525,317 @@ def lab_dashboard(request):
 
 
 # ==============================================================================
-# LAB SEAT (PC) MANAGEMENT
+# VISUAL LAB WORKSTATION FLOOR DESIGNER (ROW & PC & SPACE BUILDER)
 # ==============================================================================
 
 @login_required
 def lab_seat_list(request):
-    """List all Computer Lab PCs with search and status filtering"""
+    """
+    Visual Computer Lab Workstation Floor Designer.
+    Admins can:
+    - Create new rows
+    - In each row: add PCs (up to 100), add Empty Spaces (walkways)
+    - Set PC status (Available, Maintenance), move items left/right, and delete
+    """
     cleanup_duplicate_lab_seats()
-    search = request.GET.get('search', '')
-    status_filter = request.GET.get('status', '')
 
-    seats = LabSeat.objects.all()
-    if search:
-        seats = seats.filter(Q(pc_no__icontains=search) | Q(notes__icontains=search))
-    if status_filter:
-        seats = seats.filter(status=status_filter)
+    active_sessions = LabSession.objects.filter(status='Active', end_time__isnull=True).select_related('seat')
+    active_map = {sess.seat_id: sess for sess in active_sessions}
 
-    seats = seats.order_by('layout_slot', 'pc_no')
+    rows = LabRow.objects.prefetch_related('seats').order_by('row_number')
+    rows_list = []
+    for r in rows:
+        items = []
+        for s in r.seats.order_by('col_index', 'id'):
+            sess = active_map.get(s.id)
+            items.append({
+                'id': s.id,
+                'is_space': s.is_space,
+                'col_index': s.col_index,
+                'pc_no': s.pc_no,
+                'status': s.status,
+                'notes': s.notes,
+                'ip_address': s.ip_address,
+                'is_in_use': bool(sess),
+                'user_name': sess.user_name if sess else None,
+                'user_id_no': sess.user_id_no if sess else None,
+            })
+        rows_list.append({
+            'id': r.id,
+            'row_number': r.row_number,
+            'name': r.name or f"Row {r.row_number}",
+            'items': items,
+            'total_items': len(items),
+            'pc_count': sum(1 for it in items if not it['is_space']),
+            'space_count': sum(1 for it in items if it['is_space']),
+        })
 
-    paginator = Paginator(seats, 15)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    all_seats_layout = list(
-        LabSeat.objects.order_by('layout_slot', 'pc_no').values('id', 'pc_no', 'status', 'layout_slot')
-    )
+    all_seats = LabSeat.objects.filter(is_space=False)
+    total_rows = len(rows_list)
+    total_pcs = all_seats.count()
+    available_pcs = all_seats.filter(status='Available').count()
+    in_use_pcs = all_seats.filter(status='Reserved').count()
+    maintenance_pcs = all_seats.filter(status='Maintenance').count()
+    total_spaces = LabSeat.objects.filter(is_space=True).count()
 
     context = {
-        'seats': page_obj,
-        'search': search,
-        'status_filter': status_filter,
-        'total_count': seats.count(),
-        'all_seats_layout': all_seats_layout,
+        'rows': rows_list,
+        'total_rows': total_rows,
+        'total_pcs': total_pcs,
+        'available_pcs': available_pcs,
+        'in_use_pcs': in_use_pcs,
+        'maintenance_pcs': maintenance_pcs,
+        'total_spaces': total_spaces,
     }
     return render(request, 'lab/seats/seat_list.html', context)
 
 
 @login_required
-def lab_seat_create(request):
-    """Create a new Lab PC"""
-    requested_slot = request.GET.get('slot', '').strip()
-    inferred_slot = int(requested_slot) if requested_slot.isdigit() else None
+@csrf_exempt
+def lab_row_create(request):
+    """Create a new Lab Row (Bench)"""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
 
-    if request.method == 'POST':
-        form = LabSeatForm(request.POST)
-        if form.is_valid():
-            seat = form.save()
-            messages.success(request, f'Lab PC {seat.pc_no} added successfully!')
-            return redirect('lab:seat_list')
-    else:
-        initial = {}
-        if inferred_slot:
-            initial['layout_slot'] = inferred_slot
-            initial['pc_no'] = f"Lab PC-{inferred_slot:02d}"
-        form = LabSeatForm(initial=initial)
+    max_num = LabRow.objects.aggregate(Max('row_number'))['row_number__max'] or 0
+    next_num = max_num + 1
 
-    return render(request, 'lab/seats/seat_form.html', {
-        'form': form,
-        'title': 'Add New Lab PC',
-        'action': 'Create',
+    custom_name = request.POST.get('name', '').strip() or f"Row {next_num}"
+    row = LabRow.objects.create(row_number=next_num, name=custom_name)
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'{row.name} created successfully!',
+        'row_id': row.id,
+        'row_number': row.row_number,
+        'row_name': row.name,
     })
 
 
 @login_required
-def lab_seat_update(request, pk):
-    """Update Lab PC details or status"""
-    seat = get_object_or_404(LabSeat, pk=pk)
-    if request.method == 'POST':
-        form = LabSeatForm(request.POST, instance=seat)
-        if form.is_valid():
-            form.save()
-            messages.success(request, f'Lab PC {seat.pc_no} updated successfully!')
-            return redirect('lab:seat_list')
-    else:
-        form = LabSeatForm(instance=seat)
+@csrf_exempt
+def lab_row_delete(request, row_id):
+    """Delete a Lab Row and its associated workstations"""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
 
-    return render(request, 'lab/seats/seat_form.html', {
-        'form': form,
-        'seat': seat,
-        'title': f'Edit {seat.pc_no}',
-        'action': 'Update',
+    row = get_object_or_404(LabRow, id=row_id)
+    # Check if any PC in this row is currently active in a session
+    active_in_row = LabSession.objects.filter(seat__row=row, status='Active', end_time__isnull=True).exists()
+    if active_in_row:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Cannot delete {row.name} while a student is actively using a workstation in this row.',
+        }, status=400)
+
+    name = row.name
+    row.delete()
+    return JsonResponse({'status': 'success', 'message': f'{name} deleted successfully.'})
+
+
+@login_required
+@csrf_exempt
+def lab_row_rename(request, row_id):
+    """Rename a Lab Row"""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    row = get_object_or_404(LabRow, id=row_id)
+    new_name = request.POST.get('name', '').strip()
+    if not new_name:
+        return JsonResponse({'status': 'error', 'message': 'Row name cannot be empty.'}, status=400)
+
+    row.name = new_name
+    row.save(update_fields=['name'])
+    return JsonResponse({'status': 'success', 'message': f'Row renamed to {new_name}.'})
+
+
+@login_required
+@csrf_exempt
+def lab_row_add_pc(request, row_id):
+    """Add a Workstation (PC) to the specified row (Max 100 items per row)"""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    row = get_object_or_404(LabRow, id=row_id)
+    if row.seats.count() >= 100:
+        return JsonResponse({'status': 'error', 'message': 'Maximum 100 items reached for this row.'}, status=400)
+
+    max_col = row.seats.aggregate(Max('col_index'))['col_index__max'] or 0
+    next_col = max_col + 1
+
+    pc_no = request.POST.get('pc_no', '').strip()
+    status = request.POST.get('status', 'Available')
+    notes = request.POST.get('notes', '').strip()
+
+    if not pc_no:
+        total_pcs_count = LabSeat.objects.filter(is_space=False).count() + 1
+        pc_no = f"Lab PC-{total_pcs_count:02d}"
+
+    seat = LabSeat.objects.create(
+        row=row,
+        col_index=next_col,
+        is_space=False,
+        pc_no=pc_no,
+        status=status,
+        notes=notes,
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'{seat.pc_no} added to {row.name}!',
+        'seat_id': seat.id,
+        'pc_no': seat.pc_no,
+        'status': seat.status,
+        'col_index': seat.col_index,
     })
 
 
 @login_required
-def lab_seat_delete(request, pk):
-    """Delete a Lab PC"""
-    seat = get_object_or_404(LabSeat, pk=pk)
-    if request.method == 'POST':
-        name = seat.pc_no
-        seat.delete()
-        messages.success(request, f'Lab PC {name} removed successfully!')
-        return redirect('lab:seat_list')
-    return render(request, 'lab/seats/seat_confirm_delete.html', {'seat': seat})
+@csrf_exempt
+def lab_row_add_space(request, row_id):
+    """Add an Empty Space (Aisle / Walkway) to the specified row"""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    row = get_object_or_404(LabRow, id=row_id)
+    if row.seats.count() >= 100:
+        return JsonResponse({'status': 'error', 'message': 'Maximum 100 items reached for this row.'}, status=400)
+
+    max_col = row.seats.aggregate(Max('col_index'))['col_index__max'] or 0
+    next_col = max_col + 1
+
+    seat = LabSeat.objects.create(
+        row=row,
+        col_index=next_col,
+        is_space=True,
+        status='Available',
+        pc_no='',
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'Empty space / walkway added to {row.name}!',
+        'seat_id': seat.id,
+        'col_index': seat.col_index,
+    })
+
+
+@login_required
+@csrf_exempt
+def lab_seat_toggle_status(request, seat_id):
+    """Toggle PC status between Available and Maintenance"""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    seat = get_object_or_404(LabSeat, id=seat_id, is_space=False)
+    if seat.status == 'Reserved':
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Cannot change status while {seat.pc_no} is currently occupied by a student.',
+        }, status=400)
+
+    seat.status = 'Maintenance' if seat.status == 'Available' else 'Available'
+    seat.save(update_fields=['status'])
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'{seat.pc_no} status changed to {seat.status}.',
+        'new_status': seat.status,
+    })
+
+
+@login_required
+@csrf_exempt
+def lab_seat_edit(request, seat_id):
+    """Update PC details (name, status, notes)"""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    seat = get_object_or_404(LabSeat, id=seat_id, is_space=False)
+    pc_no = request.POST.get('pc_no', '').strip()
+    status = request.POST.get('status', seat.status)
+    notes = request.POST.get('notes', '').strip()
+
+    if not pc_no:
+        return JsonResponse({'status': 'error', 'message': 'PC number cannot be empty.'}, status=400)
+
+    seat.pc_no = pc_no
+    if seat.status != 'Reserved':
+        seat.status = status
+    seat.notes = notes
+    seat.save(update_fields=['pc_no', 'status', 'notes'])
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'{seat.pc_no} updated successfully.',
+        'pc_no': seat.pc_no,
+        'status': seat.status,
+    })
+
+
+@login_required
+@csrf_exempt
+def lab_seat_move(request, seat_id):
+    """Move a PC or Empty Space left or right within its row"""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    seat = get_object_or_404(LabSeat, id=seat_id)
+    direction = request.POST.get('direction', 'left')
+
+    row = seat.row
+    if not row:
+        return JsonResponse({'status': 'error', 'message': 'Item is not assigned to a row.'}, status=400)
+
+    if direction == 'left':
+        # Find item immediately to the left
+        sibling = row.seats.filter(col_index__lt=seat.col_index).order_by('-col_index').first()
+    else:
+        # Find item immediately to the right
+        sibling = row.seats.filter(col_index__gt=seat.col_index).order_by('col_index').first()
+
+    if not sibling:
+        return JsonResponse({'status': 'error', 'message': f'Cannot move further {direction}.'}, status=400)
+
+    # Swap col_indexes
+    temp = seat.col_index
+    seat.col_index = sibling.col_index
+    sibling.col_index = temp
+
+    seat.save(update_fields=['col_index'])
+    sibling.save(update_fields=['col_index'])
+
+    return JsonResponse({'status': 'success', 'message': 'Workstation moved.'})
+
+
+@login_required
+@csrf_exempt
+def lab_seat_delete(request, seat_id):
+    """Delete a PC or empty space and reorder remaining row items"""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    seat = get_object_or_404(LabSeat, id=seat_id)
+    if not seat.is_space and seat.status == 'Reserved':
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Cannot delete {seat.pc_no} while actively occupied.',
+        }, status=400)
+
+    row = seat.row
+    item_label = seat.pc_no if not seat.is_space else "Empty Space"
+    seat.delete()
+
+    # Re-normalize col_indexes in this row
+    if row:
+        items = list(row.seats.order_by('col_index', 'id'))
+        for idx, it in enumerate(items, start=1):
+            if it.col_index != idx:
+                it.col_index = idx
+                it.save(update_fields=['col_index'])
+
+    return JsonResponse({'status': 'success', 'message': f'{item_label} removed.'})
 
 
 # ==============================================================================

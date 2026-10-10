@@ -9,9 +9,10 @@ BANGLADESH_TZ = ZoneInfo('Asia/Dhaka')
 
 
 def canonical_lab_seats(base_queryset=None):
-    """Return one canonical seat row per PC number, keeping the oldest row."""
-    queryset = base_queryset if base_queryset is not None else LabSeat.objects.all()
+    """Return one canonical seat row per PC number, keeping the oldest row and excluding empty spaces."""
+    queryset = base_queryset if base_queryset is not None else LabSeat.objects.filter(is_space=False)
     canonical_ids = LabSeat.objects.filter(
+        is_space=False,
         pc_no=OuterRef('pc_no')
     ).order_by('id').values('id')[:1]
     return queryset.filter(id=Subquery(canonical_ids))
