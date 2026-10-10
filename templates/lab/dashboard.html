@@ -139,7 +139,7 @@
                     {% empty %}
                     <div class="col-12 text-center py-4 text-muted">
                         <p>No workstations found in the lab.</p>
-                        <a href="{% url 'lab:seat_create' %}" class="btn btn-primary btn-sm">Add First Lab PC</a>
+                        <a href="{% url 'lab:seat_list' %}" class="btn btn-primary btn-sm"><i class="fas fa-th-large me-1"></i> Configure Workstations</a>
                     </div>
                     {% endfor %}
                 </div>
