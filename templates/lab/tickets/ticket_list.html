@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Lab Issue Tickets - {{ APP_NAME }}{% endblock %}
+
+{% block content_header %}
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+        <h1 class="m-0 text-dark"><i class="fas fa-ticket-alt text-warning me-2"></i>Computer Lab Tickets</h1>
+        <small class="text-muted">Manage reported PC issues, software problems, and hardware failures</small>
+    </div>
+    <a href="{% url 'lab:dashboard' %}" class="btn btn-secondary btn-sm">
+        <i class="fas fa-arrow-left me-1"></i> Lab Dashboard
+    </a>
+</div>
+{% endblock content_header %}
+
+{% block content %}
+<div class="row mb-4">
+    <!-- Quick Status Cards -->
+    <div class="col-md-4">
+        <div class="info-box bg-light shadow-sm">
+            <span class="info-box-icon bg-secondary"><i class="fas fa-folder-open"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Open Tickets</span>
+                <span class="info-box-number text-dark">{{ open_count }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="info-box bg-light shadow-sm">
+            <span class="info-box-icon bg-warning text-white"><i class="fas fa-spinner"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">In Progress</span>
+                <span class="info-box-number text-dark">{{ in_progress_count }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="info-box bg-light shadow-sm">
+            <span class="info-box-icon bg-success"><i class="fas fa-check-circle"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Resolved</span>
+                <span class="info-box-number text-dark">{{ resolved_count }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tickets Table -->
+    <div class="col-12">
+        <div class="card card-outline card-warning shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h3 class="card-title font-weight-bold">Tickets List</h3>
+                <div class="btn-group btn-group-sm">
+                    <a href="{% url 'lab:ticket_list' %}" class="btn btn-outline-secondary {% if not status_filter %}active{% endif %}">All</a>
+                    <a href="?status=open" class="btn btn-outline-secondary {% if status_filter == 'open' %}active{% endif %}">Open</a>
+                    <a href="?status=in_progress" class="btn btn-outline-secondary {% if status_filter == 'in_progress' %}active{% endif %}">In Progress</a>
+                    <a href="?status=resolved" class="btn btn-outline-secondary {% if status_filter == 'resolved' %}active{% endif %}">Resolved</a>
+                </div>
+            </div>
+            <div class="card-body p-0 table-responsive">
+                <table class="table table-hover table-striped align-middle mb-0 text-nowrap">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ticket #</th>
+                            <th>Workstation</th>
+                            <th>Issue Category</th>
+                            <th>Title & Summary</th>
+                            <th>Reporter</th>
+                            <th>Status</th>
+                            <th>Reported At</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in tickets %}
+                        <tr>
+                            <td><strong class="font-monospace text-primary">#{{ t.id }}</strong></td>
+                            <td>
+                                {% if t.seat %}
+                                <span class="badge badge-light border text-info font-monospace">{{ t.seat.pc_no }}</span>
+                                {% else %}
+                                <span class="text-muted small">General</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="badge badge-secondary">{{ t.get_issue_type_display }}</span></td>
+                            <td>
+                                <strong class="text-dark">{{ t.title }}</strong>
+                                <div class="text-muted small text-truncate" style="max-width: 250px;">{{ t.description }}</div>
+                            </td>
+                            <td>
+                                <div>{{ t.creator_name }}</div>
+                                <small class="text-muted font-monospace">{{ t.creator_id_no }}</small>
+                            </td>
+                            <td>
+                                {% if t.status == 'open' %}
+                                <span class="badge bg-secondary">Open</span>
+                                {% elif t.status == 'in_progress' %}
+                                <span class="badge bg-warning text-dark">In Progress</span>
+                                {% elif t.status == 'resolved' %}
+                                <span class="badge bg-success">Resolved</span>
+                                {% else %}
+                                <span class="badge bg-dark">Closed</span>
+                                {% endif %}
+                            </td>
+                            <td><small class="text-muted">{{ t.created_at|date:"Y-m-d H:i" }}</small></td>
+                            <td class="text-end">
+                                <a href="{% url 'lab:ticket_edit' t.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit me-1"></i> Manage
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
+                                <p>No lab issue tickets found.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

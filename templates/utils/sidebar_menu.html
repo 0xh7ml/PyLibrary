@@ -83,3 +83,38 @@
         </li>
     </ul>
 </li>
+
+<!-- Computer Lab Universe Menu -->
+<li class="nav-header text-uppercase font-weight-bold text-info mt-2" style="font-size: 0.72rem; letter-spacing: 1px;">
+    <i class="fas fa-microchip me-1"></i> Computer Lab
+</li>
+<li class="nav-item">
+    <a href="{% url 'lab:dashboard' %}" class="nav-link">
+        <i class="nav-icon fas fa-laptop-code text-info"></i>
+        <p>Lab Dashboard</p>
+    </a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'lab:seat_list' %}" class="nav-link">
+        <i class="nav-icon fas fa-desktop text-success"></i>
+        <p>Lab Workstations</p>
+    </a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'lab:report' %}" class="nav-link">
+        <i class="nav-icon fas fa-clipboard-list text-primary"></i>
+        <p>Lab Sessions Report</p>
+    </a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'lab:ticket_list' %}" class="nav-link">
+        <i class="nav-icon fas fa-tools text-warning"></i>
+        <p>Lab Tickets</p>
+    </a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'lab:portal' %}" target="_blank" class="nav-link">
+        <i class="nav-icon fas fa-external-link-alt text-cyan"></i>
+        <p>Public Lab Terminal <span class="badge badge-info right">Portal</span></p>
+    </a>
+</li>

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Computer Lab Workstations - {{ APP_NAME }}{% endblock %}
+
+{% block content_header %}
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+        <h1 class="m-0 text-dark"><i class="fas fa-desktop text-info me-2"></i>Lab Workstations</h1>
+        <small class="text-muted">Manage Computer Lab PCs, slot indexes, and availability</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'lab:seat_create' %}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus me-1"></i> Add Lab PC
+        </a>
+        <a href="{% url 'lab:dashboard' %}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Lab Dashboard
+        </a>
+    </div>
+</div>
+{% endblock content_header %}
+
+{% block content %}
+<div class="row mb-4">
+    <!-- Filter Bar -->
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="get" class="row g-2 align-items-center">
+                    <div class="col-md-5">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" name="search" class="form-control" placeholder="Search by PC number or notes..." value="{{ search }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <select name="status" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="Available" {% if status_filter == 'Available' %}selected{% endif %}>Available</option>
+                            <option value="Reserved" {% if status_filter == 'Reserved' %}selected{% endif %}>Reserved (In Use)</option>
+                            <option value="Maintenance" {% if status_filter == 'Maintenance' %}selected{% endif %}>Maintenance</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-info btn-sm flex-grow-1 text-white">Filter</button>
+                        <a href="{% url 'lab:seat_list' %}" class="btn btn-outline-secondary btn-sm">Reset</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="col-12">
+        <div class="card card-outline card-info shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title font-weight-bold">Total Workstations: {{ total_count }}</h3>
+            </div>
+            <div class="card-body p-0 table-responsive">
+                <table class="table table-hover table-striped align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 80px;">Slot</th>
+                            <th>PC Identifier</th>
+                            <th>Status</th>
+                            <th>IP Address</th>
+                            <th>Notes</th>
+                            <th>Last Updated</th>
+                            <th class="text-end" style="width: 140px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for seat in seats %}
+                        <tr>
+                            <td class="font-monospace text-muted">{{ seat.layout_slot|default:"-" }}</td>
+                            <td>
+                                <strong class="text-primary font-monospace">{{ seat.pc_no }}</strong>
+                            </td>
+                            <td>
+                                {% if seat.status == 'Available' %}
+                                <span class="badge badge-success"><i class="fas fa-check-circle me-1"></i>Available</span>
+                                {% elif seat.status == 'Reserved' %}
+                                <span class="badge badge-info"><i class="fas fa-user me-1"></i>In Use</span>
+                                {% else %}
+                                <span class="badge badge-warning"><i class="fas fa-tools me-1"></i>Maintenance</span>
+                                {% endif %}
+                            </td>
+                            <td><small class="font-monospace text-muted">{{ seat.ip_address|default:"-" }}</small></td>
+                            <td><small class="text-muted">{{ seat.notes|default:"-" }}</small></td>
+                            <td><small class="text-muted">{{ seat.updated_at|date:"Y-m-d H:i" }}</small></td>
+                            <td class="text-end">
+                                <a href="{% url 'lab:seat_update' seat.id %}" class="btn btn-sm btn-outline-primary" title="Edit PC">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'lab:seat_delete' seat.id %}" class="btn btn-sm btn-outline-danger" title="Delete PC">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="fas fa-desktop fa-3x mb-3 text-secondary"></i>
+                                <p>No lab workstations found matching your criteria.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if seats.has_other_pages %}
+            <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                <small class="text-muted">Showing {{ seats.start_index }} to {{ seats.end_index }} of {{ seats.paginator.count }} workstations</small>
+                <ul class="pagination pagination-sm m-0">
+                    {% if seats.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ seats.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Previous</a></li>
+                    {% endif %}
+                    
+                    {% for num in seats.paginator.page_range %}
+                    <li class="page-item {% if seats.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">{{ num }}</a>
+                    </li>
+                    {% endfor %}
+
+                    {% if seats.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ seats.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock content %}

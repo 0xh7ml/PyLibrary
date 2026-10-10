@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}Computer Lab Sessions Report - {{ APP_NAME }}{% endblock %}
+
+{% block content_header %}
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+        <h1 class="m-0 text-dark"><i class="fas fa-file-alt text-primary me-2"></i>Computer Lab Sessions Report</h1>
+        <small class="text-muted">Workstation usage history, student logs, and department analytics</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'lab:dashboard' %}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Lab Dashboard
+        </a>
+    </div>
+</div>
+{% endblock content_header %}
+
+{% block content %}
+<div class="row mb-4">
+    <!-- Filter Card -->
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="get" id="labReportForm" class="row g-2 align-items-center">
+                    <input type="hidden" name="report_mode" id="reportModeInput" value="{{ report_mode }}">
+
+                    {% if not is_monthly %}
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted mb-1">DATE RANGE (YYYY-MM-DD - YYYY-MM-DD)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="far fa-calendar-alt text-primary"></i></span>
+                            <input type="text" name="daterange" class="form-control" placeholder="e.g. 2026-10-01 - 2026-10-10" value="{{ daterange }}">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">STUDENT ID OR NAME</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" name="student_id" class="form-control" placeholder="Search by ID or name..." value="{{ student_id }}">
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">YEAR</label>
+                        <input type="number" name="report_year" class="form-control" value="{{ report_year|default:2026 }}" min="2020" max="2035">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">MONTH (1-12)</label>
+                        <input type="number" name="report_month" class="form-control" value="{{ report_month|default:10 }}" min="1" max="12">
+                    </div>
+                    {% endif %}
+
+                    <div class="col-md-5 d-flex gap-2 align-items-end" style="padding-top: 1.7rem;">
+                        <button type="submit" class="btn btn-primary btn-sm px-3">
+                            <i class="fas fa-filter me-1"></i> Filter Logs
+                        </button>
+                        <a href="{% url 'lab:report' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-undo me-1"></i> Reset
+                        </a>
+                        {% if not is_monthly %}
+                        <button type="button" class="btn btn-outline-warning btn-sm" onclick="switchToMonthly()">
+                            <i class="fas fa-calendar me-1"></i> Monthly Matrix
+                        </button>
+                        {% else %}
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="switchToDaily()">
+                            <i class="fas fa-list me-1"></i> Session Logs
+                        </button>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% if not is_monthly %}
+    <!-- Detailed Session Logs Table -->
+    <div class="col-12">
+        <div class="card card-outline card-primary shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title font-weight-bold">Total Sessions Recorded: {{ total_count }}</h3>
+            </div>
+            <div class="card-body p-0 table-responsive">
+                <table class="table table-hover table-striped align-middle mb-0 text-nowrap">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#ID</th>
+                            <th>Student / Faculty</th>
+                            <th>ID Number</th>
+                            <th>Department</th>
+                            <th>Workstation</th>
+                            <th>Check-In Time</th>
+                            <th>Check-Out Time</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sess in sessions %}
+                        <tr>
+                            <td class="font-monospace text-muted">#{{ sess.id }}</td>
+                            <td><strong class="text-dark">{{ sess.user_name }}</strong></td>
+                            <td><span class="font-monospace text-primary">{{ sess.user_id_no }}</span></td>
+                            <td><small>{{ sess.user_department_name }}</small></td>
+                            <td><span class="badge badge-light border font-monospace text-info">{{ sess.seat.pc_no }}</span></td>
+                            <td><small>{{ sess.formatted_start_time }}</small></td>
+                            <td><small>{{ sess.formatted_end_time }}</small></td>
+                            <td>
+                                {% if sess.status == 'Active' %}
+                                <span class="badge badge-light border text-success">Active Now</span>
+                                {% else %}
+                                <span class="badge badge-light border text-muted">{{ sess.duration_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if sess.status == 'Active' %}
+                                <span class="badge badge-success"><i class="fas fa-circle me-1" style="font-size: 7px;"></i>In-Use</span>
+                                {% else %}
+                                <span class="badge badge-secondary">Exited</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted">
+                                <i class="fas fa-history fa-3x mb-3 text-secondary"></i>
+                                <p>No workstation sessions found for this query.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if sessions.has_other_pages %}
+            <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                <small class="text-muted">Showing {{ sessions.start_index }} to {{ sessions.end_index }} of {{ sessions.paginator.count }} logs</small>
+                <ul class="pagination pagination-sm m-0">
+                    {% if sessions.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ sessions.previous_page_number }}{% if daterange %}&daterange={{ daterange }}{% endif %}{% if student_id %}&student_id={{ student_id }}{% endif %}">Previous</a></li>
+                    {% endif %}
+                    
+                    {% for num in sessions.paginator.page_range %}
+                    <li class="page-item {% if sessions.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{% if daterange %}&daterange={{ daterange }}{% endif %}{% if student_id %}&student_id={{ student_id }}{% endif %}">{{ num }}</a>
+                    </li>
+                    {% endfor %}
+
+                    {% if sessions.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ sessions.next_page_number }}{% if daterange %}&daterange={{ daterange }}{% endif %}{% if student_id %}&student_id={{ student_id }}{% endif %}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Monthly Department Matrix Report -->
+    <div class="col-12">
+        <div class="card card-outline card-warning shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title font-weight-bold">
+                    <i class="fas fa-calendar-alt text-warning me-2"></i>Monthly Department Workstation Usage ({{ report_month }}/{{ report_year }})
+                </h3>
+                <span class="badge badge-warning text-dark font-monospace">Month Total: {{ monthly_total }} Sessions</span>
+            </div>
+            <div class="card-body p-0 table-responsive">
+                <table class="table table-bordered table-hover text-center align-middle mb-0 text-nowrap">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            {% for dept in department_names %}
+                            <th>{{ dept }}</th>
+                            {% endfor %}
+                            <th class="table-primary">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in monthly_rows %}
+                        <tr>
+                            <td class="font-monospace text-muted">{{ row.report_date|date:"Y-m-d (D)" }}</td>
+                            {% for cell in row.department_cells %}
+                            <td>{{ cell.value|default:"-" }}</td>
+                            {% endfor %}
+                            <td class="table-primary font-weight-bold">{{ row.total_students }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light font-weight-bold">
+                        <tr>
+                            <td>Total:</td>
+                            {% for dt in department_totals %}
+                            <td>{{ dt.value }}</td>
+                            {% endfor %}
+                            <td class="table-primary">{{ monthly_total }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function switchToMonthly() {
+        document.getElementById('reportModeInput').value = 'monthly';
+        document.getElementById('labReportForm').submit();
+    }
+    function switchToDaily() {
+        document.getElementById('reportModeInput').value = 'daily';
+        document.getElementById('labReportForm').submit();
+    }
+</script>
+{% endblock content %}

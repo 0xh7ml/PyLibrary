@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - {{ APP_NAME }}{% endblock %}
+
+{% block content_header %}
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+        <h1 class="m-0 text-dark"><i class="fas fa-desktop text-primary me-2"></i>{{ title }}</h1>
+        <small class="text-muted">Configure workstation properties</small>
+    </div>
+    <a href="{% url 'lab:seat_list' %}" class="btn btn-secondary btn-sm">
+        <i class="fas fa-arrow-left me-1"></i> Back to Workstations
+    </a>
+</div>
+{% endblock content_header %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+        <div class="card card-outline card-primary shadow-sm">
+            <form method="post">
+                {% csrf_token %}
+                <div class="card-body">
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>Please correct the following errors:</strong>
+                        <ul class="mb-0 mt-1">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                <li>{{ field|title }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">PC Number / Name <span class="text-danger">*</span></label>
+                        {{ form.pc_no }}
+                        <small class="form-text text-muted">e.g. "Lab PC-01" or "Workstation-A1"</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">Layout Slot Number</label>
+                        {{ form.layout_slot }}
+                        <small class="form-text text-muted">Slot position on the visual map (1 to 50)</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">Status <span class="text-danger">*</span></label>
+                        {{ form.status }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">IP Address</label>
+                        {{ form.ip_address }}
+                        <small class="form-text text-muted">Optional workstation LAN IP</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">Notes</label>
+                        {{ form.notes }}
+                    </div>
+                </div>
+                <div class="card-footer bg-light d-flex justify-content-between">
+                    <a href="{% url 'lab:seat_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-save me-1"></i> {{ action }} Workstation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

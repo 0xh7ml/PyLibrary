@@ -1,0 +1,1335 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Computer Lab Terminal | {{ APP_NAME|default:"PyLibrary" }}</title>
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.8/dist/sweetalert2.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #0a0e17;
+            --bg-card: rgba(18, 26, 43, 0.82);
+            --bg-card-hover: rgba(28, 40, 65, 0.95);
+            --border-glow: rgba(56, 189, 248, 0.2);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-emerald: #10b981;
+            --accent-purple: #8b5cf6;
+            --accent-rose: #f43f5e;
+            --accent-amber: #f59e0b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at 15% 15%, #0f172a 0%, #080c14 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Tech Mesh Background Effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 20% 80%, rgba(14, 165, 233, 0.1) 0%, transparent 45%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .universe-nav {
+            position: relative;
+            z-index: 20;
+            padding: 1rem 2rem;
+            background: rgba(10, 14, 23, 0.7);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            text-decoration: none;
+            color: white;
+        }
+
+        .brand-icon-box {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+        }
+
+        .brand-text h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin: 0;
+            background: linear-gradient(90deg, #ffffff, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-text span {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #38bdf8;
+            font-weight: 600;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-btn {
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .nav-btn-library {
+            background: rgba(255, 255, 255, 0.06);
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-btn-library:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .nav-btn-admin {
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.2), rgba(0, 242, 254, 0.2));
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .nav-btn-admin:hover {
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            color: #0a0e17;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .clock-badge {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.4rem 0.85rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #38bdf8;
+        }
+
+        /* Container Layout */
+        .content-container {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 1.5rem 2.5rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+
+        /* KPI Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1.1rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.25s ease, border-color 0.25s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+
+        .kpi-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+
+        .icon-avail { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .icon-use { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+        .icon-maint { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .icon-total { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); }
+
+        .kpi-info h3 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.1;
+        }
+
+        .kpi-info p {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin: 0;
+            margin-top: 0.25rem;
+            font-weight: 500;
+        }
+
+        /* Two-column Main Workspace */
+        .portal-layout {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .portal-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Terminal Form Card */
+        .terminal-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 1.75rem;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            height: fit-content;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 1rem;
+        }
+
+        .panel-header h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: #ffffff;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 12px #10b981;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
+        }
+
+        .id-input-group {
+            position: relative;
+        }
+
+        .id-input-label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .id-input {
+            width: 100%;
+            background: rgba(10, 14, 23, 0.85);
+            border: 2px solid rgba(56, 189, 248, 0.25);
+            border-radius: 12px;
+            padding: 0.95rem 1rem 0.95rem 3rem;
+            font-size: 1.35rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: #ffffff;
+            font-weight: 700;
+            letter-spacing: 2px;
+            transition: all 0.25s ease;
+            outline: none;
+        }
+
+        .id-input:focus {
+            border-color: #00f2fe;
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.3);
+            background: rgba(10, 14, 23, 0.95);
+        }
+
+        .id-input-icon {
+            position: absolute;
+            left: 1.1rem;
+            top: 2.75rem;
+            color: #38bdf8;
+            font-size: 1.25rem;
+        }
+
+        .action-btn-primary {
+            width: 100%;
+            padding: 0.95rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            border: none;
+            color: #0a0e17;
+            font-size: 1.05rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.65rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 20px rgba(0, 242, 254, 0.35);
+        }
+
+        .action-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 242, 254, 0.5);
+            background: linear-gradient(135deg, #38bdf8 0%, #00f2fe 100%);
+        }
+
+        .action-btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .selected-seat-badge {
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px dashed rgba(56, 189, 248, 0.4);
+            border-radius: 10px;
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #bae6fd;
+        }
+
+        .selected-seat-badge strong {
+            color: #38bdf8;
+            font-size: 1.05rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .terminal-actions-secondary {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .sec-btn {
+            flex: 1;
+            padding: 0.65rem;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .sec-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .terminal-instructions {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 12px;
+            padding: 1rem;
+            font-size: 0.82rem;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .terminal-instructions ul {
+            padding-left: 1.25rem;
+            margin-bottom: 0;
+            margin-top: 0.35rem;
+        }
+
+        /* PC Matrix Visualization Panel */
+        .matrix-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 1.75rem;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .matrix-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 1rem;
+        }
+
+        .matrix-title h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: #ffffff;
+        }
+
+        .matrix-legend {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            font-size: 0.78rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #94a3b8;
+        }
+
+        .legend-color {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+        }
+
+        .color-avail { background: var(--accent-emerald); box-shadow: 0 0 6px var(--accent-emerald); }
+        .color-use { background: var(--accent-cyan); box-shadow: 0 0 6px var(--accent-cyan); }
+        .color-maint { background: var(--accent-amber); box-shadow: 0 0 6px var(--accent-amber); }
+
+        /* PC Matrix Grid */
+        .pc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 1rem;
+            max-height: 580px;
+            overflow-y: auto;
+            padding-right: 0.4rem;
+        }
+
+        /* Custom Scrollbar */
+        .pc-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+        .pc-grid::-webkit-scrollbar-track {
+            background: rgba(10, 14, 23, 0.5);
+            border-radius: 10px;
+        }
+        .pc-grid::-webkit-scrollbar-thumb {
+            background: rgba(56, 189, 248, 0.3);
+            border-radius: 10px;
+        }
+
+        .pc-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1.5px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 1rem 0.85rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 0.5rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            user-select: none;
+        }
+
+        .pc-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .pc-card.state-available {
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        .pc-card.state-available:hover {
+            border-color: var(--accent-emerald);
+            background: rgba(16, 185, 129, 0.1);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.25);
+        }
+
+        .pc-card.state-reserved {
+            border-color: rgba(0, 242, 254, 0.3);
+            background: rgba(14, 165, 233, 0.08);
+        }
+        .pc-card.state-reserved:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 10px 25px rgba(0, 242, 254, 0.25);
+        }
+
+        .pc-card.state-maintenance {
+            border-color: rgba(245, 158, 11, 0.3);
+            background: rgba(245, 158, 11, 0.05);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .pc-card.selected-for-checkin {
+            border-color: #00f2fe !important;
+            background: rgba(0, 242, 254, 0.22) !important;
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.6) !important;
+            transform: scale(1.05);
+        }
+
+        .pc-screen {
+            width: 48px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            position: relative;
+        }
+
+        .pc-card.state-available .pc-screen {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .pc-card.state-reserved .pc-screen {
+            background: rgba(56, 189, 248, 0.2);
+            color: #38bdf8;
+        }
+
+        .pc-card.state-maintenance .pc-screen {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        .pc-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+
+        .pc-status-badge {
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 0.15rem 0.55rem;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-available { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .badge-reserved { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+        .badge-maintenance { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+
+        .pc-user-info {
+            font-size: 0.72rem;
+            color: #cbd5e1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 110px;
+            margin-top: 0.15rem;
+        }
+
+        /* Modal Customization */
+        .modal-content {
+            background: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            color: #f1f5f9;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 1.25rem 1.5rem;
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 1.25rem 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #ffffff;
+        }
+
+        .form-control, .form-select {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            border-radius: 10px;
+            padding: 0.65rem 0.85rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: #0b132b;
+            border-color: #00f2fe;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.25);
+        }
+
+        /* Footer */
+        .portal-footer {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.78rem;
+            color: #64748b;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(10, 14, 23, 0.7);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Universe Navigation -->
+    <header class="universe-nav">
+        <a href="{% url 'lab:portal' %}" class="brand-pill" id="labBrandHeader">
+            <div class="brand-icon-box">
+                <i class="fas fa-microchip"></i>
+            </div>
+            <div class="brand-text">
+                <h1>COMPUTER LAB TERMINAL</h1>
+                <span>Interactive Workstation Universe</span>
+            </div>
+        </a>
+
+        <div class="nav-actions">
+            <div class="clock-badge" id="liveClockDisplay">
+                <i class="far fa-clock me-1"></i> --:--:--
+            </div>
+            <a href="/" class="nav-btn nav-btn-library" id="goToLibraryBtn" title="Switch to Main Library">
+                <i class="fas fa-book-reader"></i>
+                <span>Library Universe</span>
+            </a>
+            <a href="{% url 'lab:dashboard' %}" class="nav-btn nav-btn-admin" id="goToLabAdminBtn" title="Open Lab Admin Dashboard">
+                <i class="fas fa-user-shield"></i>
+                <span>Lab Admin</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="content-container">
+
+        <!-- Top KPIs -->
+        <section class="stats-grid" aria-label="Workstation Statistics">
+            <div class="kpi-card" id="kpiAvailableCard">
+                <div class="kpi-icon icon-avail">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="kpi-info">
+                    <h3 id="statAvailablePcs">{{ available_pcs }}</h3>
+                    <p>Available Workstations</p>
+                </div>
+            </div>
+
+            <div class="kpi-card" id="kpiInUseCard">
+                <div class="kpi-icon icon-use">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="kpi-info">
+                    <h3 id="statInUsePcs">{{ in_use_pcs }}</h3>
+                    <p>Currently In-Use</p>
+                </div>
+            </div>
+
+            <div class="kpi-card" id="kpiMaintCard">
+                <div class="kpi-icon icon-maint">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <div class="kpi-info">
+                    <h3 id="statMaintenancePcs">{{ maintenance_pcs }}</h3>
+                    <p>Maintenance Mode</p>
+                </div>
+            </div>
+
+            <div class="kpi-card" id="kpiTotalCard">
+                <div class="kpi-icon icon-total">
+                    <i class="fas fa-network-wired"></i>
+                </div>
+                <div class="kpi-info">
+                    <h3 id="statTotalPcs">{{ total_pcs }}</h3>
+                    <p>Total Lab Stations</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Interaction Area -->
+        <div class="portal-layout">
+
+            <!-- Check-in / Checkout Terminal Form -->
+            <section class="terminal-panel" aria-label="Terminal Form">
+                <div class="panel-header">
+                    <h2><span class="status-dot"></span> Check-in / Check-out Terminal</h2>
+                    <span class="badge bg-primary bg-opacity-25 text-info px-2 py-1" style="font-size: 0.72rem;">ONE-STEP ACCESS</span>
+                </div>
+
+                <form id="labSessionForm" onsubmit="handleSessionSubmit(event)">
+                    {% csrf_token %}
+                    <div class="id-input-group mb-3">
+                        <label for="studentIdInput" class="id-input-label">Student or Faculty ID</label>
+                        <i class="fas fa-id-card id-input-icon"></i>
+                        <input 
+                            type="text" 
+                            id="studentIdInput" 
+                            class="id-input" 
+                            placeholder="e.g. 22303142" 
+                            maxlength="20"
+                            autocomplete="off" 
+                            autofocus 
+                            required
+                        >
+                    </div>
+
+                    <!-- Selected PC indicator -->
+                    <div id="selectedPcBanner" class="selected-seat-badge mb-3 d-none">
+                        <span><i class="fas fa-desktop text-info me-2"></i>Selected Station:</span>
+                        <strong id="selectedPcName">None</strong>
+                        <button type="button" class="btn btn-sm text-danger p-0 ms-2" onclick="clearSeatSelection()" title="Clear Selection">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    </div>
+
+                    <button type="submit" class="action-btn-primary mb-3" id="submitSessionBtn">
+                        <i class="fas fa-bolt"></i>
+                        <span id="submitBtnText">Process Check-In / Check-Out</span>
+                    </button>
+                </form>
+
+                <div class="terminal-actions-secondary">
+                    <button type="button" class="sec-btn" id="openRegistrationBtn" data-bs-toggle="modal" data-bs-target="#registrationModal">
+                        <i class="fas fa-user-plus text-info"></i>
+                        <span>Register ID</span>
+                    </button>
+                    <button type="button" class="sec-btn" id="openTicketBtn" data-bs-toggle="modal" data-bs-target="#ticketModal">
+                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                        <span>Report PC Issue</span>
+                    </button>
+                </div>
+
+                <div class="terminal-instructions">
+                    <strong class="text-white"><i class="fas fa-info-circle text-info me-1"></i> How It Works:</strong>
+                    <ul>
+                        <li><strong>Entering Lab:</strong> Enter your ID, tap any green available PC from the grid, and submit to check in.</li>
+                        <li><strong>Leaving Lab:</strong> Simply enter your ID and submit. Your PC is automatically freed and your time logged!</li>
+                        <li><strong>Auto Policy:</strong> Please exit before 12:00 AM to prevent lockouts.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Visual Real-time PC Matrix -->
+            <section class="matrix-panel" aria-label="Workstation Grid">
+                <div class="matrix-header">
+                    <div class="matrix-title">
+                        <h2><i class="fas fa-th-large text-info"></i> Live Workstation Floor Map</h2>
+                    </div>
+                    <div class="matrix-legend">
+                        <div class="legend-item">
+                            <span class="legend-color color-avail"></span> Available (Click to Pick)
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color color-use"></span> In-Use
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color color-maint"></span> Maintenance
+                        </div>
+                        <button class="btn btn-sm btn-outline-info p-1 px-2" style="font-size: 0.72rem;" onclick="refreshPcLayout()" title="Refresh live status">
+                            <i class="fas fa-sync-alt" id="refreshSpinIcon"></i> Sync
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Workstations Grid -->
+                <div class="pc-grid" id="pcGridContainer">
+                    {% for seat in seats_layout %}
+                    <div 
+                        class="pc-card state-{{ seat.status|lower }}" 
+                        id="seatCard_{{ seat.id }}" 
+                        data-seat-id="{{ seat.id }}"
+                        data-pc-no="{{ seat.pc_no }}"
+                        data-status="{{ seat.status }}"
+                        onclick="handleSeatCardClick(this)"
+                        title="{% if seat.status == 'Available' %}Click to select {{ seat.pc_no }}{% elif seat.status == 'Reserved' %}Occupied by {{ seat.user_name }} ({{ seat.user_id_no }}){% else %}Under Maintenance{% endif %}"
+                    >
+                        <div class="pc-screen">
+                            <i class="fas fa-desktop"></i>
+                        </div>
+                        <span class="pc-label">{{ seat.pc_no }}</span>
+                        <span class="pc-status-badge badge-{{ seat.status|lower }}">{{ seat.status }}</span>
+                        {% if seat.status == 'Reserved' and seat.user_name %}
+                            <span class="pc-user-info" title="{{ seat.user_name }}">{{ seat.user_name }}</span>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center py-5 text-muted">
+                        <i class="fas fa-desktop fa-3x mb-3 text-secondary"></i>
+                        <p>No lab workstations configured yet.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Student Registration Modal -->
+    <div class="modal fade" id="registrationModal" tabindex="-1" aria-labelledby="registrationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="registrationModalLabel">
+                        <i class="fas fa-user-plus text-info me-2"></i> Register New Student
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="labRegistrationForm" onsubmit="handleRegistrationSubmit(event)">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">STUDENT ID (8 Digits)</label>
+                            <input type="text" id="regStudentId" class="form-control" placeholder="e.g. 22303142" required maxlength="8">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">FULL NAME</label>
+                            <input type="text" id="regName" class="form-control" placeholder="e.g. John Doe" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">EMAIL ADDRESS</label>
+                            <input type="email" id="regEmail" class="form-control" placeholder="e.g. student@iubat.edu" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">DEPARTMENT</label>
+                            <select id="regDepartment" class="form-select" required>
+                                <option value="" selected disabled>Select Department</option>
+                                {% for dept in departments %}
+                                <option value="{{ dept.id }}">{{ dept.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-info btn-sm px-3" id="saveRegistrationBtn">Save & Register</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ticket Reporting Modal -->
+    <div class="modal fade" id="ticketModal" tabindex="-1" aria-labelledby="ticketModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ticketModalLabel">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i> Report Lab / PC Issue
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="labTicketForm" onsubmit="handleTicketSubmit(event)">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">YOUR STUDENT / FACULTY ID</label>
+                            <input type="text" id="ticketStudentId" class="form-control" placeholder="Enter your ID number" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">AFFECTED WORKSTATION (OPTIONAL)</label>
+                            <select id="ticketSeatSelect" class="form-select">
+                                <option value="">General Lab Issue (No specific PC)</option>
+                                {% for seat in seats_layout %}
+                                <option value="{{ seat.id }}">{{ seat.pc_no }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">ISSUE CATEGORY</label>
+                            <select id="ticketIssueType" class="form-select" required>
+                                <option value="pc_issue">PC Hardware Issue (Monitor, Keyboard, Mouse, CPU)</option>
+                                <option value="software_issue">Software / OS Issue (App crash, Login error)</option>
+                                <option value="network_issue">Network / Internet Problem</option>
+                                <option value="facility_issue">Lab Facility (AC, Chair, Power)</option>
+                                <option value="other_issue">Other Issue</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">ISSUE TITLE</label>
+                            <input type="text" id="ticketTitle" class="form-control" placeholder="Brief summary of problem" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">DETAILED DESCRIPTION</label>
+                            <textarea id="ticketDescription" class="form-control" rows="3" placeholder="Describe what happened..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning btn-sm px-3" id="submitTicketBtn">Submit Ticket</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="portal-footer">
+        <p class="mb-1">{{ footer_notice|default:"Computer Lab Workstation Terminal - Powered by PyLibrary" }}</p>
+        <p class="mb-0 text-muted" style="font-size: 0.72rem;">&copy; 2026 PyLibrary Computer Lab Universe. All rights reserved.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.8/dist/sweetalert2.all.min.js"></script>
+
+    <script>
+        // State variables
+        let selectedSeatId = null;
+        let selectedSeatName = null;
+
+        // Clock display
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { hour12: true });
+            const clockEl = document.getElementById('liveClockDisplay');
+            if (clockEl) {
+                clockEl.innerHTML = `<i class="far fa-clock me-1"></i> ${timeString}`;
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Handle Seat Card Click on Grid
+        function handleSeatCardClick(card) {
+            const status = card.dataset.status;
+            const seatId = card.dataset.seatId;
+            const pcNo = card.dataset.pcNo;
+
+            if (status === 'Maintenance') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Workstation in Maintenance',
+                    text: `${pcNo} is temporarily out of service. Please pick another workstation.`,
+                    background: '#0f172a',
+                    color: '#fff',
+                });
+                return;
+            }
+
+            if (status === 'Reserved') {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Workstation Occupied',
+                    text: `${pcNo} is currently in use.`,
+                    background: '#0f172a',
+                    color: '#fff',
+                });
+                return;
+            }
+
+            // If available, select it
+            document.querySelectorAll('.pc-card').forEach(c => c.classList.remove('selected-for-checkin'));
+            card.classList.add('selected-for-checkin');
+
+            selectedSeatId = seatId;
+            selectedSeatName = pcNo;
+
+            const banner = document.getElementById('selectedPcBanner');
+            const nameEl = document.getElementById('selectedPcName');
+            banner.classList.remove('d-none');
+            nameEl.textContent = pcNo;
+
+            // Focus back on ID input
+            document.getElementById('studentIdInput').focus();
+        }
+
+        function clearSeatSelection() {
+            selectedSeatId = null;
+            selectedSeatName = null;
+            document.querySelectorAll('.pc-card').forEach(c => c.classList.remove('selected-for-checkin'));
+            document.getElementById('selectedPcBanner').classList.add('d-none');
+        }
+
+        // Handle Main Check-in / Checkout submission
+        async function handleSessionSubmit(e) {
+            e.preventDefault();
+            const studentIdInput = document.getElementById('studentIdInput');
+            const studentId = studentIdInput.value.trim();
+            const submitBtn = document.getElementById('submitSessionBtn');
+
+            if (!studentId) return;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+            try {
+                const response = await fetch('/lab/api/session/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        student_id: studentId,
+                        seat_id: selectedSeatId,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.action === 'checkout') {
+                        // User successfully checked out
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Check-Out Complete!',
+                            html: `
+                                <div class="text-start mt-2">
+                                    <p class="mb-1"><strong>User:</strong> ${data.user_name} (${data.user_id})</p>
+                                    <p class="mb-1"><strong>Station Freed:</strong> <span class="text-info">${data.seat_number}</span></p>
+                                    <p class="mb-0"><strong>Session Duration:</strong> <span class="text-success">${data.duration}</span></p>
+                                </div>
+                            `,
+                            timer: 4000,
+                            timerProgressBar: true,
+                            background: '#0f172a',
+                            color: '#fff',
+                        });
+                        studentIdInput.value = '';
+                        clearSeatSelection();
+                        refreshPcLayout();
+                    } else if (data.action === 'checkin') {
+                        // User successfully checked in
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Check-In Successful!',
+                            html: `
+                                <div class="text-start mt-2">
+                                    <p class="mb-1"><strong>Welcome:</strong> ${data.user_name}</p>
+                                    <p class="mb-1"><strong>Assigned Station:</strong> <span class="text-info font-monospace">${data.seat_number}</span></p>
+                                    <p class="mb-0"><strong>Department:</strong> ${data.department}</p>
+                                </div>
+                            `,
+                            timer: 3500,
+                            timerProgressBar: true,
+                            background: '#0f172a',
+                            color: '#fff',
+                        });
+                        studentIdInput.value = '';
+                        clearSeatSelection();
+                        refreshPcLayout();
+                    } else if (data.action === 'prompt_seat_selection') {
+                        // User needs to select a seat first
+                        Swal.fire({
+                            icon: 'info',
+                            title: `Hello, ${data.user_name}!`,
+                            text: 'Please click on an available workstation (green tile) to choose your PC, then click Process Check-In.',
+                            background: '#0f172a',
+                            color: '#fff',
+                        });
+                    }
+                } else {
+                    if (data.not_found) {
+                        // ID Not Found -> Prompt registration
+                        const regPrompt = await Swal.fire({
+                            icon: 'question',
+                            title: 'ID Not Found',
+                            text: `ID "${studentId}" is not registered in our records. Would you like to register now?`,
+                            showCancelButton: true,
+                            confirmButtonText: 'Register Student',
+                            cancelButtonText: 'Cancel',
+                            confirmButtonColor: '#00f2fe',
+                            background: '#0f172a',
+                            color: '#fff',
+                        });
+
+                        if (regPrompt.isConfirmed) {
+                            document.getElementById('regStudentId').value = studentId;
+                            const regModal = new bootstrap.Modal(document.getElementById('registrationModal'));
+                            regModal.show();
+                        }
+                    } else if (data.is_blocked) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Account Blocked',
+                            text: data.message,
+                            background: '#0f172a',
+                            color: '#fff',
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Notice',
+                            text: data.message || 'Something went wrong.',
+                            background: '#0f172a',
+                            color: '#fff',
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Network Error',
+                    text: 'Unable to connect to lab server.',
+                    background: '#0f172a',
+                    color: '#fff',
+                });
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-bolt"></i> <span id="submitBtnText">Process Check-In / Check-Out</span>';
+                studentIdInput.focus();
+            }
+        }
+
+        // Live Refresh of PC Layout
+        async function refreshPcLayout() {
+            const spin = document.getElementById('refreshSpinIcon');
+            if (spin) spin.classList.add('fa-spin');
+
+            try {
+                const res = await fetch('/lab/api/pc-layout/');
+                const data = await res.json();
+                if (data.status === 'success') {
+                    // Update KPI counters
+                    document.getElementById('statAvailablePcs').textContent = data.available_count;
+                    document.getElementById('statInUsePcs').textContent = data.in_use_count;
+                    document.getElementById('statMaintenancePcs').textContent = data.maintenance_count;
+                    document.getElementById('statTotalPcs').textContent = data.total_count;
+
+                    // Re-render PC Grid
+                    const grid = document.getElementById('pcGridContainer');
+                    grid.innerHTML = '';
+
+                    data.seats.forEach(s => {
+                        const isSelected = (selectedSeatId == s.id);
+                        const card = document.createElement('div');
+                        card.className = `pc-card state-${s.status.toLowerCase()} ${isSelected ? 'selected-for-checkin' : ''}`;
+                        card.id = `seatCard_${s.id}`;
+                        card.dataset.seatId = s.id;
+                        card.dataset.pcNo = s.pc_no;
+                        card.dataset.status = s.status;
+                        card.onclick = () => handleSeatCardClick(card);
+
+                        let userInfoHtml = '';
+                        if (s.status === 'Reserved' && s.user_name) {
+                            userInfoHtml = `<span class="pc-user-info" title="${s.user_name}">${s.user_name}</span>`;
+                        }
+
+                        card.innerHTML = `
+                            <div class="pc-screen">
+                                <i class="fas fa-desktop"></i>
+                            </div>
+                            <span class="pc-label">${s.pc_no}</span>
+                            <span class="pc-status-badge badge-${s.status.toLowerCase()}">${s.status}</span>
+                            ${userInfoHtml}
+                        `;
+                        grid.appendChild(card);
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to sync floor map:', err);
+            } finally {
+                if (spin) spin.classList.remove('fa-spin');
+            }
+        }
+
+        // Periodic floor map auto-sync every 8 seconds
+        setInterval(refreshPcLayout, 8000);
+
+        // Handle Registration Submit
+        async function handleRegistrationSubmit(e) {
+            e.preventDefault();
+            const studentId = document.getElementById('regStudentId').value.trim();
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const deptId = document.getElementById('regDepartment').value;
+            const btn = document.getElementById('saveRegistrationBtn');
+
+            btn.disabled = true;
+            btn.innerHTML = 'Registering...';
+
+            try {
+                const res = await fetch('/lab/api/register/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        student_id: studentId,
+                        name: name,
+                        email: email,
+                        department_id: deptId,
+                    }),
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('registrationModal')).hide();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Registration Successful',
+                        text: `${name} (${studentId}) is now registered. You may check in!`,
+                        background: '#0f172a',
+                        color: '#fff',
+                    });
+                    document.getElementById('studentIdInput').value = studentId;
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Registration Failed',
+                        text: data.message,
+                        background: '#0f172a',
+                        color: '#fff',
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Save & Register';
+            }
+        }
+
+        // Handle Ticket Submit
+        async function handleTicketSubmit(e) {
+            e.preventDefault();
+            const studentId = document.getElementById('ticketStudentId').value.trim();
+            const seatId = document.getElementById('ticketSeatSelect').value;
+            const issueType = document.getElementById('ticketIssueType').value;
+            const title = document.getElementById('ticketTitle').value.trim();
+            const desc = document.getElementById('ticketDescription').value.trim();
+            const btn = document.getElementById('submitTicketBtn');
+
+            btn.disabled = true;
+            btn.innerHTML = 'Submitting...';
+
+            try {
+                const res = await fetch('/lab/api/ticket/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        student_id: studentId,
+                        seat_id: seatId || null,
+                        issue_type: issueType,
+                        title: title,
+                        description: desc,
+                    }),
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('ticketModal')).hide();
+                    document.getElementById('labTicketForm').reset();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Ticket Submitted',
+                        text: data.message,
+                        background: '#0f172a',
+                        color: '#fff',
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Submission Error',
+                        text: data.message,
+                        background: '#0f172a',
+                        color: '#fff',
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Submit Ticket';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Manage Lab Ticket #{{ ticket.id }} - {{ APP_NAME }}{% endblock %}
+
+{% block content_header %}
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+        <h1 class="m-0 text-dark"><i class="fas fa-ticket-alt text-warning me-2"></i>Manage Lab Ticket #{{ ticket.id }}</h1>
+        <small class="text-muted">Update resolution status and administrative notes</small>
+    </div>
+    <a href="{% url 'lab:ticket_list' %}" class="btn btn-secondary btn-sm">
+        <i class="fas fa-arrow-left me-1"></i> Back to Tickets
+    </a>
+</div>
+{% endblock content_header %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-outline card-warning shadow-sm">
+            <form method="post">
+                {% csrf_token %}
+                <div class="card-body">
+                    <!-- Ticket Details Banner -->
+                    <div class="bg-light p-3 rounded mb-4 border">
+                        <div class="row g-2">
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block">REPORTER</small>
+                                <strong>{{ ticket.creator_name }}</strong> ({{ ticket.creator_id_no }})
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block">REPORTED DATE</small>
+                                <span>{{ ticket.created_at|date:"Y-m-d H:i:s" }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">Title</label>
+                        {{ form.title }}
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label font-weight-bold">Issue Category</label>
+                            {{ form.issue_type }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label font-weight-bold">Workstation</label>
+                            {{ form.seat }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">Status</label>
+                        {{ form.status }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">User's Problem Description</label>
+                        {{ form.description }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold text-primary">Admin Resolution Notes</label>
+                        {{ form.admin_notes }}
+                        <small class="form-text text-muted">Notes on how this issue was inspected or resolved</small>
+                    </div>
+                </div>
+                <div class="card-footer bg-light d-flex justify-content-between">
+                    <a href="{% url 'lab:ticket_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-warning px-4">
+                        <i class="fas fa-save me-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
