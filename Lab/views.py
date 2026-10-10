@@ -686,7 +686,7 @@ def lab_row_add_pc(request, row_id):
         'message': f'{seat.pc_no} added to {row.name}!',
         'seat_id': seat.id,
         'pc_no': seat.pc_no,
-        'status': seat.status,
+        'seat_status': seat.status,
         'col_index': seat.col_index,
     })
 
@@ -770,7 +770,7 @@ def lab_seat_edit(request, seat_id):
         'status': 'success',
         'message': f'{seat.pc_no} updated successfully.',
         'pc_no': seat.pc_no,
-        'status': seat.status,
+        'seat_status': seat.status,
     })
 
 

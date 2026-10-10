@@ -412,19 +412,21 @@
 </div>
 
 <!-- Modal: Create Row -->
-<div class="modal fade" id="createRowModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
+<div class="modal fade" id="createRowModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title font-weight-bold"><i class="fas fa-plus text-primary me-2"></i>Create New Row</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
                 <label class="form-label small text-muted font-weight-bold">ROW LABEL (OPTIONAL)</label>
                 <input type="text" id="newRowNameInput" class="form-control" placeholder="e.g. Row 3 or Window Bench">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary btn-sm" onclick="submitCreateRow()">Create Row</button>
             </div>
         </div>
@@ -432,12 +434,14 @@
 </div>
 
 <!-- Modal: Rename Row -->
-<div class="modal fade" id="renameRowModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
+<div class="modal fade" id="renameRowModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title font-weight-bold"><i class="fas fa-edit text-primary me-2"></i>Rename Row</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="renameRowId">
@@ -445,7 +449,7 @@
                 <input type="text" id="renameRowInput" class="form-control" required>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary btn-sm" onclick="submitRenameRow()">Save</button>
             </div>
         </div>
@@ -453,12 +457,14 @@
 </div>
 
 <!-- Modal: Add PC to Row -->
-<div class="modal fade" id="addPcModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
+<div class="modal fade" id="addPcModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title font-weight-bold"><i class="fas fa-desktop text-success me-2"></i>Add PC to <span id="addPcRowTitle"></span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="addPcRowId">
@@ -469,7 +475,7 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label small text-muted font-weight-bold">INITIAL STATUS</label>
-                    <select id="addPcStatusSelect" class="form-select">
+                    <select id="addPcStatusSelect" class="form-control">
                         <option value="Available" selected>Available</option>
                         <option value="Maintenance">Maintenance</option>
                     </select>
@@ -480,7 +486,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-success btn-sm" onclick="submitAddPc()">Add Workstation</button>
             </div>
         </div>
@@ -488,12 +494,14 @@
 </div>
 
 <!-- Modal: Edit PC -->
-<div class="modal fade" id="editPcModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
+<div class="modal fade" id="editPcModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title font-weight-bold"><i class="fas fa-edit text-primary me-2"></i>Edit Workstation</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="editPcId">
@@ -503,7 +511,7 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label small text-muted font-weight-bold">STATUS</label>
-                    <select id="editPcStatusSelect" class="form-select">
+                    <select id="editPcStatusSelect" class="form-control">
                         <option value="Available">Available</option>
                         <option value="Maintenance">Maintenance</option>
                     </select>
@@ -514,7 +522,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary btn-sm" onclick="submitEditPc()">Save Changes</button>
             </div>
         </div>
@@ -522,41 +530,110 @@
 </div>
 {% endblock content %}
 
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.8/dist/sweetalert2.all.min.js"></script>
+{% block customJs %}
 <script>
-    // Create Row
+    // Universal CSRF Helper
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token }}';
+    }
+
+    // Universal Modal Helper (Supports Bootstrap 4 / jQuery & Bootstrap 5)
+    function openModal(id) {
+        if (window.jQuery && typeof $(id).modal === 'function') {
+            $(id).modal('show');
+        } else if (window.bootstrap && bootstrap.Modal) {
+            bootstrap.Modal.getOrCreateInstance(document.querySelector(id)).show();
+        } else {
+            const el = document.querySelector(id);
+            if (el) {
+                el.classList.add('show');
+                el.style.display = 'block';
+            }
+        }
+    }
+
+    function closeModal(id) {
+        if (window.jQuery && typeof $(id).modal === 'function') {
+            $(id).modal('hide');
+        } else if (window.bootstrap && bootstrap.Modal) {
+            const el = document.querySelector(id);
+            const inst = bootstrap.Modal.getInstance(el);
+            if (inst) inst.hide();
+        } else {
+            const el = document.querySelector(id);
+            if (el) {
+                el.classList.remove('show');
+                el.style.display = 'none';
+            }
+        }
+    }
+
+    // Universal Alert Helper
+    function showAppAlert(iconType, title, message) {
+        if (window.Swal && typeof Swal.fire === 'function') {
+            Swal.fire({ icon: iconType, title: title, text: message });
+        } else if (window.swal) {
+            swal(title, message, iconType);
+        } else {
+            alert(title + ': ' + message);
+        }
+    }
+
+    // Universal Confirm Helper
+    async function showAppConfirm(title, text) {
+        if (window.Swal && typeof Swal.fire === 'function') {
+            const res = await Swal.fire({
+                icon: 'warning',
+                title: title,
+                text: text,
+                showCancelButton: true,
+                confirmButtonText: 'Yes, proceed',
+                confirmButtonColor: '#dc3545',
+            });
+            return res.isConfirmed;
+        }
+        return window.confirm(title + '\n' + text);
+    }
+
+    // ==========================================
+    // 1. Create Row
+    // ==========================================
     function openCreateRowModal() {
         document.getElementById('newRowNameInput').value = '';
-        new bootstrap.Modal(document.getElementById('createRowModal')).show();
+        openModal('#createRowModal');
     }
 
     async function submitCreateRow() {
         const name = document.getElementById('newRowNameInput').value.trim();
         const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', getCsrfToken());
         if (name) formData.append('name', name);
 
         try {
             const res = await fetch("{% url 'lab:row_create' %}", {
                 method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
                 body: formData,
             });
             const data = await res.json();
             if (data.status === 'success') {
                 location.reload();
             } else {
-                Swal.fire({ icon: 'error', title: 'Error', text: data.message });
+                showAppAlert('error', 'Error', data.message);
             }
         } catch (e) {
             console.error(e);
+            showAppAlert('error', 'Network Error', 'Could not create row.');
         }
     }
 
-    // Rename Row
+    // ==========================================
+    // 2. Rename Row
+    // ==========================================
     function openRenameRowModal(rowId, currentName) {
         document.getElementById('renameRowId').value = rowId;
         document.getElementById('renameRowInput').value = currentName;
-        new bootstrap.Modal(document.getElementById('renameRowModal')).show();
+        openModal('#renameRowModal');
     }
 
     async function submitRenameRow() {
@@ -565,58 +642,66 @@
         if (!newName) return;
 
         const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', getCsrfToken());
         formData.append('name', newName);
 
         try {
             const res = await fetch(`/lab/admin/rows/${rowId}/rename/`, {
                 method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
                 body: formData,
             });
             const data = await res.json();
             if (data.status === 'success') {
-                document.getElementById(`rowNameText_${rowId}`).textContent = newName;
-                bootstrap.Modal.getInstance(document.getElementById('renameRowModal')).hide();
+                const el = document.getElementById(`rowNameText_${rowId}`);
+                if (el) el.textContent = newName;
+                closeModal('#renameRowModal');
             } else {
-                Swal.fire({ icon: 'error', title: 'Error', text: data.message });
+                showAppAlert('error', 'Error', data.message);
             }
         } catch (e) {
             console.error(e);
+            showAppAlert('error', 'Network Error', 'Could not rename row.');
         }
     }
 
-    // Delete Row
+    // ==========================================
+    // 3. Delete Row
+    // ==========================================
     async function deleteRow(rowId, rowName) {
-        const confirm = await Swal.fire({
-            icon: 'warning',
-            title: `Delete ${rowName}?`,
-            text: 'This will remove the row and its workstations (up to 100).',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, Delete',
-            confirmButtonColor: '#dc3545',
-        });
+        const confirmed = await showAppConfirm(`Delete ${rowName}?`, 'This will remove the row and its workstations.');
+        if (!confirmed) return;
 
-        if (confirm.isConfirmed) {
-            try {
-                const res = await fetch(`/lab/admin/rows/${rowId}/delete/`, { method: 'POST' });
-                const data = await res.json();
-                if (data.status === 'success') {
-                    location.reload();
-                } else {
-                    Swal.fire({ icon: 'error', title: 'Cannot Delete', text: data.message });
-                }
-            } catch (e) {
-                console.error(e);
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', getCsrfToken());
+
+        try {
+            const res = await fetch(`/lab/admin/rows/${rowId}/delete/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
+                body: formData,
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                location.reload();
+            } else {
+                showAppAlert('error', 'Cannot Delete', data.message);
             }
+        } catch (e) {
+            console.error(e);
+            showAppAlert('error', 'Network Error', 'Could not delete row.');
         }
     }
 
-    // Add PC to Row
+    // ==========================================
+    // 4. Add PC to Row
+    // ==========================================
     function openAddPcModal(rowId, rowName) {
         document.getElementById('addPcRowId').value = rowId;
         document.getElementById('addPcRowTitle').textContent = rowName;
         document.getElementById('addPcNoInput').value = '';
         document.getElementById('addPcNotesInput').value = '';
-        new bootstrap.Modal(document.getElementById('addPcModal')).show();
+        openModal('#addPcModal');
     }
 
     async function submitAddPc() {
@@ -626,6 +711,7 @@
         const notes = document.getElementById('addPcNotesInput').value.trim();
 
         const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', getCsrfToken());
         if (pcNo) formData.append('pc_no', pcNo);
         formData.append('status', status);
         if (notes) formData.append('notes', notes);
@@ -633,102 +719,134 @@
         try {
             const res = await fetch(`/lab/admin/rows/${rowId}/add-pc/`, {
                 method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
                 body: formData,
             });
             const data = await res.json();
             if (data.status === 'success') {
                 location.reload();
             } else {
-                Swal.fire({ icon: 'error', title: 'Error', text: data.message });
+                showAppAlert('error', 'Error', data.message);
             }
         } catch (e) {
             console.error(e);
+            showAppAlert('error', 'Network Error', 'Could not add workstation.');
         }
     }
 
-    // Add Empty Space to Row
+    // ==========================================
+    // 5. Add Empty Space (Aisle) to Row
+    // ==========================================
     async function addSpaceToRow(rowId) {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', getCsrfToken());
+
         try {
-            const res = await fetch(`/lab/admin/rows/${rowId}/add-space/`, { method: 'POST' });
+            const res = await fetch(`/lab/admin/rows/${rowId}/add-space/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
+                body: formData,
+            });
             const data = await res.json();
             if (data.status === 'success') {
                 location.reload();
             } else {
-                Swal.fire({ icon: 'error', title: 'Error', text: data.message });
+                showAppAlert('error', 'Error', data.message);
             }
         } catch (e) {
             console.error(e);
+            showAppAlert('error', 'Network Error', 'Could not add empty space.');
         }
     }
 
-    // Toggle PC Status
+    // ==========================================
+    // 6. Toggle PC Status (Available / Maintenance)
+    // ==========================================
     async function toggleSeatStatus(seatId) {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', getCsrfToken());
+
         try {
-            const res = await fetch(`/lab/admin/seats/${seatId}/toggle-status/`, { method: 'POST' });
+            const res = await fetch(`/lab/admin/seats/${seatId}/toggle-status/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
+                body: formData,
+            });
             const data = await res.json();
             if (data.status === 'success') {
                 location.reload();
             } else {
-                Swal.fire({ icon: 'error', title: 'Action Denied', text: data.message });
+                showAppAlert('error', 'Action Denied', data.message);
             }
         } catch (e) {
             console.error(e);
+            showAppAlert('error', 'Network Error', 'Could not toggle status.');
         }
     }
 
-    // Move Item Left / Right
+    // ==========================================
+    // 7. Move Item Left / Right
+    // ==========================================
     async function moveItem(seatId, direction) {
         const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', getCsrfToken());
         formData.append('direction', direction);
 
         try {
             const res = await fetch(`/lab/admin/seats/${seatId}/move/`, {
                 method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
                 body: formData,
             });
             const data = await res.json();
             if (data.status === 'success') {
                 location.reload();
             } else {
-                Swal.fire({ icon: 'info', title: 'Notice', text: data.message, timer: 1500, showConfirmButton: false });
+                showAppAlert('info', 'Notice', data.message);
             }
         } catch (e) {
             console.error(e);
+            showAppAlert('error', 'Network Error', 'Could not move workstation.');
         }
     }
 
-    // Delete PC or Space
+    // ==========================================
+    // 8. Delete PC or Space
+    // ==========================================
     async function deleteSeat(seatId, pcNo) {
-        const confirm = await Swal.fire({
-            icon: 'warning',
-            title: `Remove ${pcNo}?`,
-            showCancelButton: true,
-            confirmButtonText: 'Yes, Remove',
-            confirmButtonColor: '#dc3545',
-        });
+        const confirmed = await showAppConfirm(`Remove ${pcNo}?`, 'Are you sure you want to remove this item?');
+        if (!confirmed) return;
 
-        if (confirm.isConfirmed) {
-            try {
-                const res = await fetch(`/lab/admin/seats/${seatId}/delete/`, { method: 'POST' });
-                const data = await res.json();
-                if (data.status === 'success') {
-                    location.reload();
-                } else {
-                    Swal.fire({ icon: 'error', title: 'Cannot Delete', text: data.message });
-                }
-            } catch (e) {
-                console.error(e);
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', getCsrfToken());
+
+        try {
+            const res = await fetch(`/lab/admin/seats/${seatId}/delete/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
+                body: formData,
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                location.reload();
+            } else {
+                showAppAlert('error', 'Cannot Delete', data.message);
             }
+        } catch (e) {
+            console.error(e);
+            showAppAlert('error', 'Network Error', 'Could not delete item.');
         }
     }
 
-    // Edit PC
+    // ==========================================
+    // 9. Edit PC
+    // ==========================================
     function openEditPcModal(seatId, pcNo, status, notes) {
         document.getElementById('editPcId').value = seatId;
         document.getElementById('editPcNoInput').value = pcNo;
         document.getElementById('editPcStatusSelect').value = status;
         document.getElementById('editPcNotesInput').value = notes;
-        new bootstrap.Modal(document.getElementById('editPcModal')).show();
+        openModal('#editPcModal');
     }
 
     async function submitEditPc() {
@@ -737,9 +855,13 @@
         const status = document.getElementById('editPcStatusSelect').value;
         const notes = document.getElementById('editPcNotesInput').value.trim();
 
-        if (!pcNo) return;
+        if (!pcNo) {
+            showAppAlert('warning', 'Required', 'PC Number cannot be empty.');
+            return;
+        }
 
         const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', getCsrfToken());
         formData.append('pc_no', pcNo);
         formData.append('status', status);
         formData.append('notes', notes);
@@ -747,17 +869,19 @@
         try {
             const res = await fetch(`/lab/admin/seats/${seatId}/edit/`, {
                 method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
                 body: formData,
             });
             const data = await res.json();
             if (data.status === 'success') {
                 location.reload();
             } else {
-                Swal.fire({ icon: 'error', title: 'Error', text: data.message });
+                showAppAlert('error', 'Error', data.message);
             }
         } catch (e) {
             console.error(e);
+            showAppAlert('error', 'Network Error', 'Could not save workstation changes.');
         }
     }
 </script>
-{% endblock extra_js %}
+{% endblock customJs %}
